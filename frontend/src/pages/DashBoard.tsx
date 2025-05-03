@@ -47,7 +47,7 @@ const Dashboard: React.FC = () => {
             <li>Issues Reported: <strong>{cctvStatus.issuesReported}</strong></li>
           </ul>
           <Link
-            to="/checkcctv"
+            to="/cctvdataviwer"
             className="inline-block mt-4 text-blue-700 hover:underline"
           >
             Go to CCTV Monitoring →
