@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func CreateCustomer(c *gin.Context) {
+func CreateUser(c *gin.Context) {
 	var customer entity.User
 
 	if err := c.ShouldBindJSON(&customer); err != nil {
@@ -50,7 +50,7 @@ func UpdateCustomer(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": "updated your customer successfully"})
 }
 
-func DeleteCustomer(c *gin.Context) {
+func DeleteUser(c *gin.Context) {
 	// create variable for store data as type of TourRegistration
 	var customer entity.User
 
@@ -68,7 +68,7 @@ func DeleteCustomer(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": "Delete Customer Successfully"})
 }
 
-func GetCustomerByID(c *gin.Context) {
+func GetUserByID(c *gin.Context) {
 	// Create variable to store data as type of User
 	var customer entity.User
 	customerID := c.Param("id")  // Get the customer ID from the URL parameter
@@ -85,20 +85,4 @@ func GetCustomerByID(c *gin.Context) {
 
 	// Respond with customer data
 	c.JSON(http.StatusOK, gin.H{"data": customer})
-}
-
-func SaveDailyCheck(c *gin.Context) {
-    var payload entity.DailyCheck
-
-    if err := c.ShouldBindJSON(&payload); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
-
-    if err := entity.DB().Create(&payload).Error; err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
-
-    c.JSON(http.StatusOK, gin.H{"message": "บันทึกเรียบร้อย"})
 }
