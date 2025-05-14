@@ -2,7 +2,7 @@ package entity
 
 import (
 	"time"
-
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -20,18 +20,31 @@ type Gender struct { //
 }
 
 
-type CheckSystems struct {
-	BaseModel
-	ServerRoom   []string `gorm:"serializer:json"`
-	BuildingABC   []string `gorm:"serializer:json"`
-	BuildingDEF   []string `gorm:"serializer:json"`
-	Carpark   []string `gorm:"serializer:json"`
-	Internet   []string `gorm:"serializer:json"`
-	Telephone   []string `gorm:"serializer:json"`
-	Programs   []string `gorm:"serializer:json"`
-	CCTVImage   []string  `gorm:"type:longtext","serializer:json"`
-
+type CheckItem struct {
+	Name    string `json:"name"`
+	Checked bool   `json:"checked"`
+	Remark  string `json:"remark"`
 }
+type DailyCheck struct {
+	ID        uint           `gorm:"primaryKey"`
+	Date      string         `json:"date"`
+	CheckedBy string         `json:"checked_by"`
+	Checks    datatypes.JSON `gorm:"type:json" json:"checks"`
+	CreatedAt time.Time
+}
+
+type CheckSystems struct {
+	gorm.Model
+	ServerRoom   []CheckItem `gorm:"type:json" json:"server_room"`
+	BuildingABC  []CheckItem `gorm:"type:json" json:"building_abc"`
+	BuildingDEF  []CheckItem `gorm:"type:json" json:"building_def"`
+	Carpark      []CheckItem `gorm:"type:json" json:"carpark"`
+	Internet     []CheckItem `gorm:"type:json" json:"internet"`
+	Telephone    []CheckItem `gorm:"type:json" json:"telephone"`
+	Programs     []CheckItem `gorm:"type:json" json:"programs"`
+	CCTVImage    []CheckItem `gorm:"type:json" json:"cctv_image"`
+}
+
 
 type User struct { //
 	BaseModel
@@ -47,7 +60,7 @@ type User struct { //
 	UserTypeID uint
 	UserType   *UserType `gorm:"foreignKey:UserTypeID"`
 }
-
+   
 type UserType struct { //
 	BaseModel
 	Name string `gorm:"unique"`

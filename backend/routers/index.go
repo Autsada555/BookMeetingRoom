@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"github.com/Autsada555/BookMeetingRoom/controllers"
+	// "github.com/Autsada555/BookMeetingRoom/controllers"
 	"github.com/Autsada555/BookMeetingRoom/middlewares"
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +25,7 @@ func InitRouter(route *gin.Engine) {
 
 func initRequiredAuthRouter(route *gin.RouterGroup) {
 	route.Use(middlewares.Authentication())
-	requireAdmin := middlewares.RequireAdmin()
+	// requireAdmin := middlewares.RequireAdmin()
 	// requireCash := middlewares.RequireCash()
 	// requireDelivery := middlewares.RequireDelivery()
 	// route.GET("/customer", controllers.GetAllCustomer)
