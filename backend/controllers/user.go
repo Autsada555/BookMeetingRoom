@@ -33,7 +33,7 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": "customer successfully"})
 }
 
-func UpdateCustomer(c *gin.Context) {
+func UpdateUser(c *gin.Context) {
 	var customer entity.User
 	id := c.Param("id")
 

@@ -65,6 +65,15 @@ type UserType struct { //
 	BaseModel
 	Name string `gorm:"unique"`
 }
+
+type Booking struct {
+ ID        uint      `gorm:"primaryKey"`
+ Name      string    // ชื่อผู้จอง
+ Room      string    // ชื่อห้อง (Room A, B, C, ...)
+ StartTime time.Time // เวลาเริ่ม
+ EndTime   time.Time // เวลาสิ้นสุด
+ CreatedAt time.Time
+}
 // type MenuType struct { //
 // 	BaseModel
 // 	Name string `gorm:"unique"`

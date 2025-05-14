@@ -9,9 +9,9 @@ import (
 	"github.com/Autsada555/BookMeetingRoom/entity"
 	// "github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm/clause"
+	// "gorm.io/gorm/clause"
 )
-func SaveDailyCheck(c *gin.Context) {
+func SaveCheckSystems(c *gin.Context) {
     var payload entity.DailyCheck
 
     if err := c.ShouldBindJSON(&payload); err != nil {
@@ -25,4 +25,13 @@ func SaveDailyCheck(c *gin.Context) {
     }
 
     c.JSON(http.StatusOK, gin.H{"message": "บันทึกเรียบร้อย"})
+}
+
+func ListCheckSystems(c *gin.Context) {
+ var checksystems []entity.CheckSystems
+ if err := entity.DB().Find(&checksystems).Error; err != nil {
+  c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list checksystems"})
+  return
+ }
+ c.JSON(http.StatusOK, checksystems)
 }

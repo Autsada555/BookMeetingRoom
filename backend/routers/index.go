@@ -1,7 +1,7 @@
 package routers
 
 import (
-	// "github.com/Autsada555/BookMeetingRoom/controllers"
+	"github.com/Autsada555/BookMeetingRoom/controllers"
 	"github.com/Autsada555/BookMeetingRoom/middlewares"
 	"github.com/gin-gonic/gin"
 )
@@ -14,9 +14,8 @@ func InitRouter(route *gin.Engine) {
 
 	route.Use(middlewares.CORS())
 
-	// route.POST("/login", controllers.Login)
-	// route.POST("/customer/create", controllers.CreateCustomer)
-	// route.GET("/customer/gender", controllers.GetAllGender)
+	route.POST("/login", controllers.Login)
+	route.POST("/user/create", controllers.CreateUser)
 
 	authRouter := route.Group("/")
 	initRequiredAuthRouter(authRouter)
@@ -30,23 +29,26 @@ func initRequiredAuthRouter(route *gin.RouterGroup) {
 	// requireDelivery := middlewares.RequireDelivery()
 	// route.GET("/customer", controllers.GetAllCustomer)
 
-	// route.POST("/logout/:id", controllers.Logout)
-	// route.PATCH("/customer/edit/:id", controllers.UpdateCustomer)
-	// route.GET("/customer/:id", controllers.GetCustomerByID)
-
-	// route.DELETE("/customer/delete/:id", requireAdmin, controllers.DeleteCustomer)
+	//User
+	route.POST("/logout/:id", controllers.Logout)
+	route.PATCH("/user/edit/:id", controllers.UpdateUser)
+	route.GET("/user/:id", controllers.GetUserByID)
+	route.DELETE("/user/delete/:id", controllers.DeleteUser)
 	// route.GET("/customer/", requireAdmin, controllers.GetCustomer)
 	// route.GET("/customer/usertype", requireAdmin, controllers.GetAllUserType)
 
-	// //menu
+	//BookingMeeting
+	route.POST("/book/create", controllers.CreateBooking)
+	route.GET("/book/list",controllers.ListBookings)
 	// route.GET("/menu/:id", controllers.GetMenuByDiseaseID)
-	// route.GET("/menus" , requireAdmin, controllers.GetMenu)
+	// route.GET("/menus", requireAdmin, controllers.GetMenu)
 	// route.POST("/menu/create", requireAdmin, controllers.CreateMenu)
 	// route.PATCH("/menu/update/:id", requireAdmin, controllers.UpdateMenu)
 	// route.DELETE("/menu/delete/:id", requireAdmin, controllers.DeleteMenu)
 
-	// //menu type
-	// route.GET("/menutypes", controllers.Menutypes)
+	//CCTV
+	route.POST("/checksystems/create", controllers.SaveCheckSystems)
+	route.GET("/checksystems/list", controllers.ListCheckSystems)
 
 	// //order
 	// route.GET("/order/:id", controllers.GetOrderByID)
