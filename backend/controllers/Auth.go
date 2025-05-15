@@ -1,13 +1,12 @@
 package controllers
 
 import (
-	
 	"net/http"
 
+	"fmt"
 	"github.com/Autsada555/BookMeetingRoom/entity"
 	"github.com/Autsada555/BookMeetingRoom/utils"
 	"github.com/gin-gonic/gin"
-	"fmt"
 )
 
 var role_data = map[string]struct {
@@ -26,21 +25,7 @@ var role_data = map[string]struct {
 	},
 
 	"admin": {
-		ID:        200,
-		Value:     func() interface{} { return &entity.User{} },
-		Table:     "users",
-		TokenName: "etk",
-		Hour:      24,
-	},
-	"cash": {
-		ID:        201,
-		Value:     func() interface{} { return &entity.User{} },
-		Table:     "users",
-		TokenName: "etk",
-		Hour:      24,
-	},
-	"delivery": {
-		ID:        202,
+		ID:        999,
 		Value:     func() interface{} { return &entity.User{} },
 		Table:     "users",
 		TokenName: "etk",
@@ -49,9 +34,9 @@ var role_data = map[string]struct {
 }
 
 type LoginPayload struct {
-	EmailOrUsername string `binding:"required"`
-	Password        string `binding:"required"`
-	UserTypeID      uint
+	Email      string `binding:"required"`
+	Password   string `binding:"required"`
+	UserTypeID uint
 }
 
 func Logout(c *gin.Context) {
@@ -74,9 +59,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	base_query := entity.DB().Table("users").Where("email = ? or user_name = ? ", payload.EmailOrUsername, payload.EmailOrUsername)
+	base_query := entity.DB().Table("users").Where("email = ? ", payload.Email)
 
-	if err := entity.DB().Table("users").Where("email = ? or user_name = ? ", payload.EmailOrUsername, payload.EmailOrUsername).Select("password").First(&temp).Error; err != nil {
+	if err := entity.DB().Table("users").Where("email = ? ", payload.Email).Select("password").First(&temp).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -96,16 +81,16 @@ func Login(c *gin.Context) {
 	fmt.Println("data", data)
 	fmt.Println("payload", payload)
 
-	generateJWT, errJWT := utils.GenerateJWT(data.TokenName, c, payload.EmailOrUsername, data.ID, data.Hour)
+	generateJWT, errJWT := utils.GenerateJWT(data.TokenName, c, payload.Email, data.ID, data.Hour)
 	if errJWT != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "token could not be created"})
 		return
 	}
-	
+
 	if err := utils.SetActiveJWT(c, data.TokenName, data.Hour); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "token could not be created"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": generateJWT, "usertypeid": value.UserTypeID, "userid": value.ID, "usertype": data.TokenName })
+	c.JSON(http.StatusOK, gin.H{"token": generateJWT, "usertypeid": value.UserTypeID, "userid": value.ID, "usertype": data.TokenName})
 }

@@ -36,11 +36,12 @@ func SetupTestDatabase() {
 func autoMigrate(database *gorm.DB) {
 	database.AutoMigrate(
 		&Gender{}, //
-		&CheckSystems{},
+		// &CheckSystems{},
 		&User{}, //
 		&UserType{}, //
 		&CheckItem{}, //
-		&DailyCheck{}, //
+		&DailyCheckSystems{}, //
+		&Booking{},//
 		// &Menu{},
 		// &StatusOrderType{}, //	
 		// &StatusPaymentType{}, //

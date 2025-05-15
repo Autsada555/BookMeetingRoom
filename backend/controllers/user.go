@@ -34,15 +34,15 @@ func CreateUser(c *gin.Context) {
 }
 
 func UpdateUser(c *gin.Context) {
-	var customer entity.User
+	var user entity.User
 	id := c.Param("id")
 
-	if err := c.ShouldBindJSON(&customer); err != nil {
+	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ShouldBindJSON"})
 		return
 	}
 
-	if err := entity.DB().Table("users").Where("id = ?", id).Save(&customer).Error; err != nil {
+	if err := entity.DB().Table("users").Where("id = ?", id).Save(&user).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
 		return
 	}
@@ -52,14 +52,14 @@ func UpdateUser(c *gin.Context) {
 
 func DeleteUser(c *gin.Context) {
 	// create variable for store data as type of TourRegistration
-	var customer entity.User
+	var user entity.User
 
 	// get id from url
 	id := c.Param("id")
 
 	// delete data in database and check error
 	// Clauses(clause.Returning{}) is used to return the deleted data ควรส่งคืนข้อมูลที่ลบไปแล้ว
-	if rows := entity.DB().Clauses(clause.Returning{}).Delete(&customer, id).RowsAffected; rows == 0 {
+	if rows := entity.DB().Clauses(clause.Returning{}).Delete(&user, id).RowsAffected; rows == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "record not found"})
 		return
 	}
@@ -70,7 +70,7 @@ func DeleteUser(c *gin.Context) {
 
 func GetUserByID(c *gin.Context) {
 	// Create variable to store data as type of User
-	var customer entity.User
+	var user entity.User
 	customerID := c.Param("id")  // Get the customer ID from the URL parameter
 
 	// Get data from the database and check for errors
@@ -78,11 +78,11 @@ func GetUserByID(c *gin.Context) {
 		Preload("Gender").    // Preload Gender to load the related gender data
 		Omit("CheckpaymentID","UserName", "Password","UserType").  // Preload UserType to load the related user type data
 		Where("id = ?", customerID). // Explicitly use users.id to avoid ambiguity
-		First(&customer).Error; err != nil {
+		First(&user).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Respond with customer data
-	c.JSON(http.StatusOK, gin.H{"data": customer})
+	c.JSON(http.StatusOK, gin.H{"data": user})
 }

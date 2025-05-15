@@ -31,7 +31,7 @@ func initRequiredAuthRouter(route *gin.RouterGroup) {
 
 	//User
 	route.POST("/logout/:id", controllers.Logout)
-	route.PATCH("/user/edit/:id", controllers.UpdateUser)
+	route.PATCH("/user/patch/:id", controllers.UpdateUser)
 	route.GET("/user/:id", controllers.GetUserByID)
 	route.DELETE("/user/delete/:id", controllers.DeleteUser)
 	// route.GET("/customer/", requireAdmin, controllers.GetCustomer)
@@ -40,6 +40,8 @@ func initRequiredAuthRouter(route *gin.RouterGroup) {
 	//BookingMeeting
 	route.POST("/book/create", controllers.CreateBooking)
 	route.GET("/book/list",controllers.ListBookings)
+	route.PATCH("/book/patch/:id", controllers.UpdateBookings)
+	route.DELETE("/book/delete/:id", controllers.DeleteBookings)
 	// route.GET("/menu/:id", controllers.GetMenuByDiseaseID)
 	// route.GET("/menus", requireAdmin, controllers.GetMenu)
 	// route.POST("/menu/create", requireAdmin, controllers.CreateMenu)
@@ -47,8 +49,11 @@ func initRequiredAuthRouter(route *gin.RouterGroup) {
 	// route.DELETE("/menu/delete/:id", requireAdmin, controllers.DeleteMenu)
 
 	//CCTV
-	route.POST("/checksystems/create", controllers.SaveCheckSystems)
+	route.POST("/checksystems/create", controllers.CreateDailyCheckSystems)
 	route.GET("/checksystems/list", controllers.ListCheckSystems)
+	route.DELETE("/checksystems/delete/:id", controllers.DeleteUser)
+	route.PATCH("/checksystems/patch/:id", controllers.UpdateUser)
+
 
 	// //order
 	// route.GET("/order/:id", controllers.GetOrderByID)
