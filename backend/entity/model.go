@@ -20,9 +20,8 @@ type Gender struct { //
 }
 
 type CheckItem struct {
-	Name    string `json:"name"`
-	Checked bool   `json:"checked"`
-	Remark  string `json:"remark"`
+	Name   string `json:"name"`
+	Remark string `json:"remark"`
 }
 type DailyCheckSystems struct {
 	ID        uint           `gorm:"primaryKey"`
@@ -34,21 +33,6 @@ type DailyCheckSystems struct {
 	User      User           `gorm:"foreignKey:UserID"`
 	CreatedAt time.Time
 }
-
-// type CheckSystems struct {
-// 	gorm.Model
-// 	ServerRoom  []CheckItem `gorm:"type:json" json:"server_room"`
-// 	BuildingABC []CheckItem `gorm:"type:json" json:"building_abc"`
-// 	BuildingDEF []CheckItem `gorm:"type:json" json:"building_def"`
-// 	Carpark     []CheckItem `gorm:"type:json" json:"carpark"`
-// 	Internet    []CheckItem `gorm:"type:json" json:"internet"`
-// 	Telephone   []CheckItem `gorm:"type:json" json:"telephone"`
-// 	Programs    []CheckItem `gorm:"type:json" json:"programs"`
-// 	CCTVImage   []CheckItem `gorm:"type:json" json:"cctv_image"`
-
-// 	UserID uint
-// 	User   User `gorm:"foreignKey:UserID"`
-// }
 
 type User struct { //
 	BaseModel
