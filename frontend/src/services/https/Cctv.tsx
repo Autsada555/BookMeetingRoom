@@ -2,16 +2,15 @@ import { User } from "@/interfaces/Index";
 
 const apiUrl = "http://localhost:8080";
 
-const GetCustomerByID = async (id: number) => {
+const GetAllCheckSystems = async () => {
   const requestOptions: RequestInit = {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
-    credentials: "include"
   };
 
-  const res = await fetch(`${apiUrl}/customer/${id}`, requestOptions)
+  let res = await fetch(`${apiUrl}/checksystems/list`, requestOptions)
     .then((response) => response.json())
     .then((res) => {
       if (res.data) {
@@ -24,7 +23,7 @@ const GetCustomerByID = async (id: number) => {
   return res;
 }
 
-async function CreateCustomer(formData: User) {
+async function CreateCheckSystems(formData: User) {
   const requestOptions: RequestInit = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -32,7 +31,7 @@ async function CreateCustomer(formData: User) {
     body: JSON.stringify(formData),
   };
 
-  const res = await fetch(`${apiUrl}/customer/create`, requestOptions)
+  const res = await fetch(`${apiUrl}/checksystems/create`, requestOptions)
     .then((response) => response.json())
     .then((res) => {
       if (res.data) {
@@ -45,7 +44,7 @@ async function CreateCustomer(formData: User) {
   return res;
 }
 
-async function UpdateCustomer(formData: User, id: number | undefined) {
+async function UpdateCheckSystems(formData: User, id: number | undefined) {
   const requestOptions: RequestInit = {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -53,7 +52,7 @@ async function UpdateCustomer(formData: User, id: number | undefined) {
     credentials: "include"
   };
 
-  const res = await fetch(`${apiUrl}/customer/edit/${id}`, requestOptions)
+  const res = await fetch(`${apiUrl}/checksystems/patch/${id}`, requestOptions)
     .then((response) => response.json())
     .then((res) => {
       if (res.data) {
@@ -66,12 +65,12 @@ async function UpdateCustomer(formData: User, id: number | undefined) {
   return res;
 }
 
-async function DeleteCustomer(id: number | undefined) {
+async function DeleteCheckSystems(id: number | undefined) {
   const requestOptions: RequestInit = {
     method: "DELETE",
     credentials: "include",
   };
-  const res = await fetch(`${apiUrl}/customer/delete/${id}`, requestOptions)
+  const res = await fetch(`${apiUrl}/checksystems/delete/${id}`, requestOptions)
     .then((response) => response.json())
     .then((res) => {
       console.log(res)
@@ -86,4 +85,4 @@ async function DeleteCustomer(id: number | undefined) {
 }
 
 
-export { UpdateCustomer, DeleteCustomer,  CreateCustomer,  GetCustomerByID }
+export { UpdateCheckSystems, DeleteCheckSystems, CreateCheckSystems, GetAllCheckSystems }
