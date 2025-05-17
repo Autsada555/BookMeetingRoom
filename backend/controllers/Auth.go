@@ -16,7 +16,7 @@ var role_data = map[string]struct {
 	TokenName string
 	Hour      int
 }{
-	"customer": {
+	"user": {
 		ID:        100,
 		Value:     func() interface{} { return &entity.User{} },
 		Table:     "users",
@@ -44,6 +44,7 @@ func Logout(c *gin.Context) {
 	// data := role_data[value.UserType.Name]
 	id := c.Param("id")
 	c.SetCookie(id, "", -1, "/", utils.GetConfig().ORIGIN, false, true)
+	// c.SetCookie("token", "", -1, "/", utils.GetConfig().ORIGIN, false, true)
 	c.SetCookie("token", "", -1, "/", utils.GetConfig().ORIGIN, false, true)
 	c.JSON(http.StatusOK, gin.H{"data": "you have been logged out"})
 }

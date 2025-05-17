@@ -1,9 +1,42 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+// import { useToast } from "@/components/ui/use-toast";
+import { toast } from 'sonner';
+import { LogOutUser } from '@/services/https/User';
 
 const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  // const { toast } = useToast()
+  const navigate = useNavigate();
+
+  const LogOut = async () => {
+    try {
+      const res = await LogOutUser(`${window.localStorage.getItem("userType")}`);
+      if (res.status) {
+        toast.success("Logged out!", {
+          description: "ออกจากระบบเสร็จสิ้น",
+        });
+
+        localStorage.removeItem("token");
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userTypeId');
+        localStorage.removeItem('userType');
+        setTimeout(() => {
+        }, 1500)
+        window.location.reload();
+        navigate("/login", { replace: true });
+        window.location.reload();
+      } else {
+        toast.error("ออกจากระบบไม่สำเร็จ", {
+          description: "มีบางอย่างผิดปกติทำให้ออกจากระบบไม่ได้",
+        });
+      }
+
+    } catch (error) {
+      console.log("Error", error);
+    }
+  }
 
   return (
     <nav className="bg-slate-200 border-gray-200 dark:bg-gray-900">
@@ -35,7 +68,7 @@ const Navbar: React.FC = () => {
                 </div>
                 <ul className="py-2">
                   <li><Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Profile</Link></li>
-                  <li><Link to="/logout" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Sign out</Link></li>
+                  <li className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600" onClick={LogOut}>Sign out</li>
                 </ul>
               </div>
             )}

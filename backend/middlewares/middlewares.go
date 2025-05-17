@@ -33,7 +33,7 @@ func Authentication() gin.HandlerFunc {
 			token_name, _ := payload["active_token"].(string)
 			if _, data, err := utils.ValidateJWT(token_name, c); err == nil {
 				fmt.Println(data["UserTypeID"])
-				c.Set("EmailOrUsername", data["EmailOrUsername"].(string))
+				c.Set("Email", data["Email"].(string))
 				c.Set("active_token", token_name)
 				c.Set("authenticated", true)
 				c.Set("UserTypeID", data["UserTypeID"])
@@ -60,11 +60,11 @@ func Authorization(role_ids ...uint) gin.HandlerFunc {
 		}
 
 		role := map[string]uint{
-			"etk": 101,
+			"etk": 999,
 			"utk": 100,
 		}
 		active_token := c.GetString("active_token")
-		EmailOrUsername := c.GetString("EmailOrUsername")
+		Email:= c.GetString("Email")
 
 		if active_token != "etk" {
 			roleValue, exists := role[active_token]
@@ -76,7 +76,7 @@ func Authorization(role_ids ...uint) gin.HandlerFunc {
 			var emp struct {
 				UserTypeID uint
 			}
-			if err := entity.DB().Table("users").Where("email = ? or user_name = ? ", EmailOrUsername, EmailOrUsername).First(&emp).Error; err == nil {
+			if err := entity.DB().Table("users").Where("email = ?", Email).First(&emp).Error; err == nil {
 				if slices.Contains(role_ids, emp.UserTypeID) {
 					c.Next()
 					return
@@ -87,6 +87,25 @@ func Authorization(role_ids ...uint) gin.HandlerFunc {
 	}
 }
 
+// func RequireAdmin() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		fmt.Println("RequireAdmin")
+// 		userTypeID, exists := c.Get("UserTypeID")
+// 		if !exists {
+// 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized2"})
+// 			return
+// 		}
+// 		fmt.Println("UserTypeID",userTypeID)
+// 		fmt.Printf("typeof userTypeID: %T\n", userTypeID)
+// 		if userTypeID.(float64) != 999 {
+// 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access Denied"})
+// 			return
+// 		}
+// 		c.Next()
+// 		return
+// 	}
+// }
+
 func RequireAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Println("RequireAdmin")
@@ -95,49 +114,51 @@ func RequireAdmin() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized2"})
 			return
 		}
-		fmt.Println("UserTypeID",userTypeID)
+		fmt.Println("UserTypeID", userTypeID)
 		fmt.Printf("typeof userTypeID: %T\n", userTypeID)
-		if userTypeID.(float64) != 200 {
+
+		if userTypeID.(float64) != 999 {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access Denied"})
 			return
 		}
-		c.Next()
-		return
+
+		c.Next() // return ไม่จำเป็นหลังจากนี้
 	}
 }
-func RequireCash() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		fmt.Println("RequireAdmin")
-		userTypeID, exists := c.Get("UserTypeID")
-		if !exists {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized2"})
-			return
-		}
-		fmt.Println("UserTypeID",userTypeID)
-		fmt.Printf("typeof userTypeID: %T\n", userTypeID)
-		if (userTypeID.(float64) != 201) || (userTypeID.(float64) != 200) {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access Denied"})
-			return
-		}
-		c.Next()
-		return
-	}
-}
-func RequireDelivery() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		fmt.Println("RequireAdmin")
-		userTypeID, exists := c.Get("UserTypeID")
-		if !exists {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized2"})
-			return
-		}
-		fmt.Println("UserTypeID",userTypeID)
-		fmt.Printf("typeof userTypeID: %T\n", userTypeID)
-		if (userTypeID.(float64) != 202) || (userTypeID.(float64) != 200) {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access Denied"})
-			return
-		}
-		c.Next()
-		return
-	}
-}
+
+// func RequireCash() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		fmt.Println("RequireAdmin")
+// 		userTypeID, exists := c.Get("UserTypeID")
+// 		if !exists {
+// 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized2"})
+// 			return
+// 		}
+// 		fmt.Println("UserTypeID",userTypeID)
+// 		fmt.Printf("typeof userTypeID: %T\n", userTypeID)
+// 		if (userTypeID.(float64) != 201) || (userTypeID.(float64) != 200) {
+// 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access Denied"})
+// 			return
+// 		}
+// 		c.Next()
+// 		return
+// 	}
+// }
+// func RequireDelivery() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		fmt.Println("RequireAdmin")
+// 		userTypeID, exists := c.Get("UserTypeID")
+// 		if !exists {
+// 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized2"})
+// 			return
+// 		}
+// 		fmt.Println("UserTypeID",userTypeID)
+// 		fmt.Printf("typeof userTypeID: %T\n", userTypeID)
+// 		if (userTypeID.(float64) != 202) || (userTypeID.(float64) != 200) {
+// 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Access Denied"})
+// 			return
+// 		}
+// 		c.Next()
+// 		return
+// 	}
+// }

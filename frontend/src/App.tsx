@@ -8,12 +8,14 @@ import DailyCheckForm from './pages/DailyCheck';
 import Dashboard from './pages/DashBoard';
 import DataViewer from './pages/DataViewer';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { Toaster } from 'sonner';
 
 const AppRoutes: React.FC = () => {
   const { isLoggedIn } = useAuth();
 
   return (
     <>
+    <Toaster />
       {isLoggedIn && <Navbar />}
       <Routes>
         <Route path="/login" element={<LoginPage />} />

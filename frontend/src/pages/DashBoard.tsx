@@ -9,7 +9,7 @@ const Dashboard: React.FC = () => {
     cancellations: 2
   };
 
-  const cctvStatus = {
+  const DataStatus = {
     totalCameras: 73,
     online: 65,
     offline: 8,
@@ -39,15 +39,15 @@ const Dashboard: React.FC = () => {
 
         {/* CCTV Section */}
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-blue-200">
-          <h2 className="text-xl font-semibold text-blue-700 mb-4">CCTV Overview</h2>
+          <h2 className="text-xl font-semibold text-blue-700 mb-4">Data Overview</h2>
           <ul className="text-blue-600 space-y-2">
-            <li>Total Cameras: <strong>{cctvStatus.totalCameras}</strong></li>
-            <li>Online: <strong>{cctvStatus.online}</strong></li>
-            <li>Offline: <strong>{cctvStatus.offline}</strong></li>
-            <li>Issues Reported: <strong>{cctvStatus.issuesReported}</strong></li>
+            <li>Total Cameras: <strong>{DataStatus.totalCameras}</strong></li>
+            <li>Online: <strong>{DataStatus.online}</strong></li>
+            <li>Offline: <strong>{DataStatus.offline}</strong></li>
+            <li>Issues Reported: <strong>{DataStatus.issuesReported}</strong></li>
           </ul>
           <Link
-            to="/cctvdataviwer"
+            to="/dataviwer"
             className="inline-block mt-4 text-blue-700 hover:underline"
           >
             Go to CCTV Monitoring →

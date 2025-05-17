@@ -84,7 +84,7 @@ async function DeleteUser(id: number | undefined) {
 
   return res;
 }
-async function LoginUser(data: { EmailOrUsername: string, password: string }) {
+async function LoginUser(data: { Email: string, password: string }) {
   const requestOptions: RequestInit = {
     method: "POST",
     headers: { "Content-Type": "application/json" },

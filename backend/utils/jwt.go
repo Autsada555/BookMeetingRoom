@@ -40,11 +40,11 @@ func ValidateJWT(token_name string, c *gin.Context) (*jwt.Token, jwt.MapClaims, 
 	return token, claims, nil
 }
 
-func GenerateJWT(token_name string, c *gin.Context, EmailOrUsername string,id uint, hour int) (string, error) {
+func GenerateJWT(token_name string, c *gin.Context, Email string,id uint, hour int) (string, error) {
 	expiration := time.Now().Add(time.Hour * time.Duration(hour)).Unix()
 	// token to identify user
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"EmailOrUsername": EmailOrUsername,
+		"Email": Email,
 		"exp":   expiration,
 		"UserTypeID":    id,
 	})
@@ -59,9 +59,23 @@ func GenerateJWT(token_name string, c *gin.Context, EmailOrUsername string,id ui
 	return token_string, nil
 }
 
+// func SetActiveJWT(c *gin.Context, token_name string, hour int) error {
+// 	expiration := time.Now().Add(time.Hour * time.Duration(hour)).Unix()
+// 	// token to identify active user
+// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+// 		"active_token": token_name,
+// 		"exp":          expiration,
+// 	})
+// 	token_string, err := token.SignedString(SECRET_KEY)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	c.SetCookie("token", token_string, 3600*hour, "", GetConfig().ORIGIN, true, true)
+// 	return nil
+// }
+
 func SetActiveJWT(c *gin.Context, token_name string, hour int) error {
 	expiration := time.Now().Add(time.Hour * time.Duration(hour)).Unix()
-	// token to identify active user
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"active_token": token_name,
 		"exp":          expiration,
@@ -70,6 +84,6 @@ func SetActiveJWT(c *gin.Context, token_name string, hour int) error {
 	if err != nil {
 		return err
 	}
-	c.SetCookie("token", token_string, 3600*hour, "", GetConfig().ORIGIN, true, true)
+	c.SetCookie("token", token_string, 3600*hour, "/", GetConfig().ORIGIN, true, true)
 	return nil
 }

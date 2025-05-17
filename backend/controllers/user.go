@@ -43,7 +43,7 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	if err := entity.DB().Table("users").Where("id = ?", id).Save(&user).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -71,13 +71,13 @@ func DeleteUser(c *gin.Context) {
 func GetUserByID(c *gin.Context) {
 	// Create variable to store data as type of User
 	var user entity.User
-	customerID := c.Param("id")  // Get the customer ID from the URL parameter
+	customerID := c.Param("id") // Get the customer ID from the URL parameter
 
 	// Get data from the database and check for errors
 	if err := entity.DB().Model(&entity.User{}).
-		Preload("Gender").    // Preload Gender to load the related gender data
-		Omit("CheckpaymentID","UserName", "Password","UserType").  // Preload UserType to load the related user type data
-		Where("id = ?", customerID). // Explicitly use users.id to avoid ambiguity
+		Preload("Gender").                                          // Preload Gender to load the related gender data
+		Omit("CheckpaymentID", "UserName", "Password", "UserType"). // Preload UserType to load the related user type data
+		Where("id = ?", customerID).                                // Explicitly use users.id to avoid ambiguity
 		First(&user).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
