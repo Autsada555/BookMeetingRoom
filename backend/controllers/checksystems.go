@@ -16,11 +16,11 @@ import (
 )
 
 type CheckData struct {
-	Date      string                      `json:"date"`
-	CheckedBy string                      `json:"checked_by"`
-	Checks    map[string]entity.CheckItem `json:"checks"`
-	Images    []string                    `json:"images"`
-	UserID    uint                        `json:"userID"`
+	Date      string             `json:"date"`
+	CheckedBy string             `json:"checkedBy"`
+	UserID    uint               `json:"userID"`
+	Checks    []entity.CheckItem `json:"checks"` // เปลี่ยนจาก map[string] เป็น slice
+	Images    []string           `json:"images"`
 }
 
 func CreateDailyCheckSystems(c *gin.Context) {

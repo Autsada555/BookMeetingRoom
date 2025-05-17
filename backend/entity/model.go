@@ -7,8 +7,7 @@ import (
 )
 
 type BaseModel struct {
-	ID uint `gorm:"primarykey"`
-
+	ID        uint           `gorm:"primarykey"`
 	CreatedAt time.Time      `json:"-"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
@@ -20,18 +19,19 @@ type Gender struct { //
 }
 
 type CheckItem struct {
-	Name   string `json:"name"`
-	Remark string `json:"remark"`
+	BaseModel
+	Name    string `json:"name"`
+	Checked bool   `json:"checked"`
+	Remark  string `json:"remark"`
 }
 type DailyCheckSystems struct {
-	ID        uint           `gorm:"primaryKey"`
+	BaseModel
+	// ID        uint           `gorm:"primaryKey"`
 	Date      string         `json:"date"`
-	CheckedBy string         `json:"checked_by"`
-	Checks    datatypes.JSON `gorm:"type:json" json:"checks"`
-	Images    datatypes.JSON `gorm:"type:json" json:"images"` // เพิ่มถ้าจะเก็บชื่อไฟล์รูปภาพ
-	UserID    uint
-	User      User           `gorm:"foreignKey:UserID"`
-	CreatedAt time.Time
+	CheckedBy string         `json:"checkedBy"`
+	UserID    uint           `json:"userID"`
+	Checks    datatypes.JSON `json:"checks"`
+	Images    datatypes.JSON `json:"images"`
 }
 
 type User struct { //
@@ -55,6 +55,7 @@ type UserType struct { //
 }
 
 type Booking struct {
+	BaseModel
 	ID        uint      `gorm:"primaryKey"`
 	Name      string    // ชื่อผู้จอง
 	Room      string    // ชื่อห้อง (Room A, B, C, ...)

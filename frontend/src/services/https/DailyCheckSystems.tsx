@@ -1,4 +1,4 @@
-import { User } from "@/interfaces/Index";
+import { DailyChecks } from "@/interfaces/Index";
 
 const apiUrl = "http://localhost:8080";
 
@@ -23,7 +23,7 @@ const GetAllCheckSystems = async () => {
   return res;
 }
 
-async function CreateCheckSystems(formData: User) {
+async function CreateCheckSystems(formData: DailyChecks) {
   const requestOptions: RequestInit = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -44,7 +44,7 @@ async function CreateCheckSystems(formData: User) {
   return res;
 }
 
-async function UpdateCheckSystems(formData: User, id: number | undefined) {
+async function UpdateCheckSystems(formData: DailyChecks, id: number | undefined) {
   const requestOptions: RequestInit = {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

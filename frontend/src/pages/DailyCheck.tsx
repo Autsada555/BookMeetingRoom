@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { CreateCheckSystems } from "@/services/https/DailyCheckSystems";
+import { DailyChecks } from "@/interfaces/Index";
 
 const sections = [
   {
@@ -25,7 +27,7 @@ const sections = [
   {
     title: "Internet & DATA",
     checks: [
-      "Main Internet TOT", "Main Internet NT(CAT)", "Speed Test Wifi-Public","Office Connection",
+      "Main Internet TOT", "Main Internet NT(CAT)", "Speed Test Wifi-Public", "Office Connection",
       "Access Point", "Website Hotel", "EV Charger", "AP Install", "AP Online", "AP Offline"
     ]
   },
@@ -39,32 +41,13 @@ const sections = [
   }
 ];
 
-type InputFieldProps = {
-  label: string;
-  value: string;
-  onChange: (remark: string) => void;
-};
-
-const InputField: React.FC<InputFieldProps> = ({ label, value, onChange }) => (
-  <div className="flex items-center mb-2">
-    <label className="text-blue-600 font-semibold mr-2 w-48">{label}</label>
-    <input
-      type="text"
-      placeholder="Remark"
-      className="flex-1 border border-blue-400 rounded-md p-2 text-blue-700"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  </div>
-);
-
-const DailyCheckForm: React.FC = () => {
-  const [formData, setFormData] = useState<Record<string, string>>(
-    Object.fromEntries(
-      sections.flatMap(section => section.checks.map(item => [item, ""]))
-    )
-  );
-
+const DailyCheckSystemPage = () => {
+  const [formData, setFormData] = useState(() => Object.fromEntries(
+    sections.flatMap(section => section.checks.map(item => [item, ""]))
+  ));
+  const [checkStates, setCheckStates] = useState(() => Object.fromEntries(
+    sections.flatMap(section => section.checks.map(item => [item, false]))
+  ));
   const [checkedBy, setCheckedBy] = useState("");
   const [date, setDate] = useState("");
   const [images, setImages] = useState<File[]>([]);
@@ -73,42 +56,13 @@ const DailyCheckForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [label]: remark }));
   };
 
+  const handleCheckChange = (label: string, checked: boolean) => {
+    setCheckStates(prev => ({ ...prev, [label]: checked }));
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setImages(Array.from(e.target.files));
-    }
-  };
-
-  const handleSave = async () => {
-    const checks = Object.entries(formData).map(([name, remark]) => ({
-      name,
-      checked: false,
-      remark
-    }));
-
-    const payload = {
-      date,
-      checkedBy,
-      checks,
-      images: images.map(img => img.name),
-    };
-
-    try {
-      const response = await fetch("http://localhost:8080/api/daily-check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        alert("บันทึกสำเร็จ!");
-      } else {
-        const error = await response.json();
-        alert("เกิดข้อผิดพลาด: " + error.message);
-      }
-    } catch (error) {
-      console.error("Save failed:", error);
-      alert("เชื่อมต่อ backend ไม่ได้");
     }
   };
 
@@ -121,6 +75,42 @@ const DailyCheckForm: React.FC = () => {
     });
   };
 
+  const handleSave = async () => {
+    const userId = parseInt(localStorage.getItem("userId") || "0"); // แปลงเป็น number
+
+    const checks = Object.entries(formData).map(([name, remark]) => ({
+      name,
+      checked: checkStates[name],
+      remark
+    }));
+
+    const payload: DailyChecks = {
+      date,
+      checkedBy,
+      userID: userId,
+      checks,
+      images: images.map(img => img.name),
+    };
+
+    try {
+      const res = await CreateCheckSystems(payload);
+
+      if (res.status) {
+        alert("บันทึกสำเร็จ");
+        console.log(res)
+      } else {
+        alert("เกิดข้อผิดพลาด: " + res.message);
+        console.log(res)
+
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("เชื่อมต่อ backend ไม่ได้");
+    }
+  };
+
+
+
   const exportPDF = async () => {
     const doc = new jsPDF();
     doc.text("RAVINDRA RESORT AND SPA DAILY CHECK SYSTEMS", 14, 10);
@@ -128,7 +118,7 @@ const DailyCheckForm: React.FC = () => {
 
     const rows = Object.entries(formData).map(([key, remark]) => [
       key,
-      "",
+      checkStates[key] ? "✔️" : "",
       remark,
     ]);
 
@@ -163,35 +153,22 @@ const DailyCheckForm: React.FC = () => {
       y += height + 5;
     }
 
-    doc.save("daily_check" + `"${date}"` + ".pdf");
+    doc.save(`daily-check-${date || "unknown"}.pdf`);
   };
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold text-blue-700 mb-4">
-        RAVINDRA RESORT AND SPA DAILY CHECK SYSTEMS
-      </h1>
+      <h1 className="text-2xl font-bold text-blue-700 mb-4">RAVINDRA RESORT AND SPA DAILY CHECK SYSTEMS</h1>
       <p className="text-blue-600 mb-4">Section: IT</p>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex-1">
           <label className="block text-blue-700 font-semibold mb-1">Date</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full border border-blue-400 rounded-md p-2"
-          />
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full border border-blue-400 rounded-md p-2" />
         </div>
         <div className="flex-1">
           <label className="block text-blue-700 font-semibold mb-1">Checked By</label>
-          <input
-            type="text"
-            placeholder="Your Name"
-            value={checkedBy}
-            onChange={(e) => setCheckedBy(e.target.value)}
-            className="w-full border border-blue-400 rounded-md p-2"
-          />
+          <input type="text" value={checkedBy} onChange={e => setCheckedBy(e.target.value)} placeholder="Your Name" className="w-full border border-blue-400 rounded-md p-2" />
         </div>
       </div>
 
@@ -200,12 +177,11 @@ const DailyCheckForm: React.FC = () => {
           <h2 className="text-xl font-semibold text-blue-800 mb-2">{section.title}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {section.checks.map((check) => (
-              <InputField
-                key={check}
-                label={check}
-                value={formData[check]}
-                onChange={(remark) => handleFieldChange(check, remark)}
-              />
+              <div key={check} className="flex items-center mb-2 gap-2">
+                <input type="checkbox" checked={checkStates[check]} onChange={(e) => handleCheckChange(check, e.target.checked)} />
+                <label className="w-48 text-blue-600 font-semibold">{check}</label>
+                <input type="text" value={formData[check]} onChange={(e) => handleFieldChange(check, e.target.value)} placeholder="Remark" className="flex-1 border border-blue-400 rounded-md p-2 text-blue-700" />
+              </div>
             ))}
           </div>
         </div>
@@ -213,42 +189,20 @@ const DailyCheckForm: React.FC = () => {
 
       <div className="mb-6">
         <label className="block text-blue-700 font-semibold mb-1">อัปโหลดรูปภาพ (หลายภาพ)</label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleImageChange}
-          className="w-full border border-blue-400 rounded-md p-2"
-        />
+        <input type="file" accept="image/*" multiple onChange={handleImageChange} className="w-full border border-blue-400 rounded-md p-2" />
         <div className="mt-2 flex flex-wrap gap-2">
           {images.map((img, idx) => (
-            <img
-              key={idx}
-              src={URL.createObjectURL(img)}
-              alt={`preview-${idx}`}
-              className="w-24 h-24 object-cover rounded shadow"
-            />
+            <img key={idx} src={URL.createObjectURL(img)} alt={`preview-${idx}`} className="w-24 h-24 object-cover rounded shadow" />
           ))}
         </div>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-4">
-        <button
-          onClick={handleSave}
-          className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
-        >
-          บันทึกข้อมูล
-        </button>
-
-        <button
-          onClick={exportPDF}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          ดาวน์โหลด PDF
-        </button>
+        <button onClick={handleSave} className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">บันทึกข้อมูล</button>
+        <button onClick={exportPDF} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">ดาวน์โหลด PDF</button>
       </div>
     </div>
   );
 };
 
-export default DailyCheckForm;
+export default DailyCheckSystemPage;

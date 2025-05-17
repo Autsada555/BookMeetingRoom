@@ -28,7 +28,7 @@ const LoginPage: React.FC = () => {
       toast.success("Logged in!", {
         description: "เข้าสู่ระบบสำเร็จ",
       });
-      window.location.reload();
+      // window.location.reload();
       // setTimeout(() => {
       // },3000)
       if (rememberMe) {
