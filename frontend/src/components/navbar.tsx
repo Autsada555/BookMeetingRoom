@@ -13,6 +13,7 @@ const Navbar: React.FC = () => {
   const LogOut = async () => {
     try {
       const res = await LogOutUser(`${window.localStorage.getItem("userType")}`);
+      window.location.reload();
       if (res.status) {
         toast.success("Logged out!", {
           description: "ออกจากระบบเสร็จสิ้น",
@@ -22,9 +23,8 @@ const Navbar: React.FC = () => {
         localStorage.removeItem('userId');
         localStorage.removeItem('userTypeId');
         localStorage.removeItem('userType');
-        setTimeout(() => {
-        }, 1500)
-        window.location.reload();
+        // setTimeout(() => {
+        // }, 3000)
         navigate("/login", { replace: true });
         window.location.reload();
       } else {

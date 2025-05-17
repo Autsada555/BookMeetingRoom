@@ -15,7 +15,7 @@ const AppRoutes: React.FC = () => {
 
   return (
     <>
-    <Toaster />
+     <Toaster position="top-right" richColors />
       {isLoggedIn && <Navbar />}
       <Routes>
         <Route path="/login" element={<LoginPage />} />

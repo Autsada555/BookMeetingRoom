@@ -42,6 +42,8 @@
 }
 
 :root {
+  --sonner-color-danger: #ed8f8f; /* พื้นหลัง */
+  --sonner-color-danger-foreground: #b91c1c; /* ตัวอักษร */
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -114,6 +116,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

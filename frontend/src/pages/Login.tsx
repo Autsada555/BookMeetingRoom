@@ -28,6 +28,9 @@ const LoginPage: React.FC = () => {
       toast.success("Logged in!", {
         description: "เข้าสู่ระบบสำเร็จ",
       });
+      window.location.reload();
+      // setTimeout(() => {
+      // },3000)
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', email);
         localStorage.setItem('rememberedPassword', password);
