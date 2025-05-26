@@ -9,6 +9,7 @@ interface MonthlyGroupedData {
 }
 
 const DataViewer: React.FC = () => {
+  const [dailyChecks, setDailyChecks] = useState<DailyChecks[]>([]);
   const [groupedData, setGroupedData] = useState<MonthlyGroupedData>({});
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [selectedCheck, setSelectedCheck] = useState<DailyChecks | null>(null);
@@ -21,24 +22,25 @@ const DataViewer: React.FC = () => {
   const handleFetchData = async () => {
     const res = await GetAllCheckSystems();
     if (res && Array.isArray(res)) {
+      setDailyChecks(res);
       const grouped = groupByMonth(res);
       setGroupedData(grouped);
       const months = Object.keys(grouped);
-      if (months.length > 0) setSelectedMonth(months[0]); // เลือกเดือนแรกอัตโนมัติ
+      if (months.length > 0) setSelectedMonth(months[0]);
     }
   };
 
   const groupByMonth = (data: DailyChecks[]) => {
     const grouped: MonthlyGroupedData = {};
     data.forEach((item) => {
-      const month = item.date.slice(0, 7); // 'YYYY-MM'
+      const month = item.date.slice(0, 7);
       if (!grouped[month]) grouped[month] = [];
       grouped[month].push(item);
     });
     return grouped;
   };
 
-  const safeParseChecks = (jsonStr: string | null): any => {
+  const safeParseChecks = (jsonStr: string | null): Record<string, any[]> => {
     try {
       return JSON.parse(jsonStr || '{}');
     } catch {
@@ -73,9 +75,11 @@ const DataViewer: React.FC = () => {
       body: rows,
     });
 
-    if (check.images && Array.isArray(check.images) && check.images.length > 0) {
+    if (Array.isArray(check.images) && check.images.length > 0) {
+      const images = check.images;
       let loadedImages = 0;
-      check.images.forEach((imgUrl: string, i: number) => {
+
+      images.forEach((imgUrl: string, i: number) => {
         const img = new Image();
         img.crossOrigin = 'Anonymous';
         img.src = imgUrl;
@@ -93,14 +97,14 @@ const DataViewer: React.FC = () => {
           doc.addImage(imgData, 'JPEG', 14, 30, 180, 120);
 
           loadedImages++;
-          if (loadedImages === check.images!.length) {
+          if (loadedImages === images.length) {
             doc.save(`CheckSystem_${check.date}.pdf`);
           }
         };
 
         img.onerror = () => {
           loadedImages++;
-          if (loadedImages === check.images!.length) {
+          if (loadedImages === images.length) {
             doc.save(`CheckSystem_${check.date}.pdf`);
           }
         };
@@ -114,11 +118,8 @@ const DataViewer: React.FC = () => {
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-3xl font-bold text-blue-900 mb-6">Daily Check Systems</h1>
 
-      {/* Select เดือน */}
       <div className="mb-6">
-        <label htmlFor="monthSelect" className="mr-3 font-semibold">
-          เลือกเดือน:
-        </label>
+        <label htmlFor="monthSelect" className="mr-3 font-semibold">เลือกเดือน:</label>
         <select
           id="monthSelect"
           className="border border-gray-400 rounded px-3 py-1"
@@ -126,26 +127,19 @@ const DataViewer: React.FC = () => {
           onChange={(e) => setSelectedMonth(e.target.value)}
         >
           {Object.keys(groupedData).map((month) => (
-            <option key={month} value={month}>
-              {month}
-            </option>
+            <option key={month} value={month}>{month}</option>
           ))}
         </select>
       </div>
 
-      {/* แสดงข้อมูลของเดือนที่เลือก */}
       {selectedMonth && groupedData[selectedMonth] ? (
         <div>
           <h2 className="text-xl font-semibold mb-2 text-blue-700">{selectedMonth}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {groupedData[selectedMonth].map((check) => (
               <div key={check.id} className="border border-blue-300 p-4 rounded shadow">
-                <p>
-                  <strong>Date:</strong> {check.date}
-                </p>
-                <p>
-                  <strong>Checked By:</strong> {check.checkedBy}
-                </p>
+                <p><strong>Date:</strong> {check.date}</p>
+                <p><strong>Checked By:</strong> {check.checkedBy}</p>
                 <button
                   className="bg-blue-600 text-white mt-3 px-4 py-2 rounded hover:bg-blue-700"
                   onClick={() => {
@@ -163,11 +157,12 @@ const DataViewer: React.FC = () => {
         <p className="text-gray-600">ไม่มีข้อมูลสำหรับเดือนนี้</p>
       )}
 
-      {/* Modal */}
       {showModal && selectedCheck && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start z-50 p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-5xl rounded shadow-lg p-6 relative max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4 text-blue-800">Check Details - {selectedCheck.date}</h2>
+            <h2 className="text-xl font-bold mb-4 text-blue-800">
+              Check Details - {selectedCheck.date}
+            </h2>
 
             <table className="w-full border border-gray-300 text-sm mb-4">
               <thead className="bg-gray-100">
@@ -179,23 +174,21 @@ const DataViewer: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {(
-                  Object.entries(safeParseChecks(selectedCheck.checks) as Record<string, any[]>)
-                ).flatMap(([section, items], i) =>
-                  items.map((check, j) => (
-                    <tr key={`${i}-${j}`}>
-                      <td className="p-2 border">{section}</td>
-                      <td className="p-2 border">{check.name}</td>
-                      <td className="p-2 border text-center">{check.status ? '✔️' : '❌'}</td>
-                      <td className="p-2 border">{check.remark || '-'}</td>
-                    </tr>
-                  ))
+                {(Object.entries(safeParseChecks(selectedCheck.checks))).flatMap(
+                  ([section, items], i) =>
+                    items.map((check, j) => (
+                      <tr key={`${i}-${j}`}>
+                        <td className="p-2 border">{section}</td>
+                        <td className="p-2 border">{check.name}</td>
+                        <td className="p-2 border text-center">{check.status ? '✔️' : '❌'}</td>
+                        <td className="p-2 border">{check.remark || '-'}</td>
+                      </tr>
+                    ))
                 )}
               </tbody>
             </table>
 
-            {/* Images */}
-            {selectedCheck.images && selectedCheck.images.length > 0 && (
+            {Array.isArray(selectedCheck.images) && selectedCheck.images.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                 {selectedCheck.images.map((url, index) => (
                   <div key={index}>
