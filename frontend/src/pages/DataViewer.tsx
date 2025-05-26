@@ -12,7 +12,7 @@ const DataViewer: React.FC = () => {
   const [dailyChecks, setDailyChecks] = useState<DailyChecks[]>([]);
   const [groupedData, setGroupedData] = useState<MonthlyGroupedData>({});
   const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [selectedCheck, setSelectedCheck] = useState<DailyChecks | null>(null);
+  const [selectedCheckIndex, setSelectedCheckIndex] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -40,13 +40,15 @@ const DataViewer: React.FC = () => {
     return grouped;
   };
 
-  const safeParseChecks = (jsonStr: string | null): Record<string, any[]> => {
+  function safeParseChecks(checks: string | undefined | null): Record<string, any[]> {
+    if (!checks) return {};
     try {
-      return JSON.parse(jsonStr || '{}');
-    } catch {
+      const parsed = JSON.parse(checks);
+      return typeof parsed === 'object' && parsed !== null ? parsed : {};
+    } catch (e) {
       return {};
     }
-  };
+  }
 
   const handleDownloadPDF = (check: DailyChecks) => {
     const doc = new jsPDF();
@@ -136,14 +138,14 @@ const DataViewer: React.FC = () => {
         <div>
           <h2 className="text-xl font-semibold mb-2 text-blue-700">{selectedMonth}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {groupedData[selectedMonth].map((check) => (
+            {groupedData[selectedMonth].map((check, index) => (
               <div key={check.id} className="border border-blue-300 p-4 rounded shadow">
                 <p><strong>Date:</strong> {check.date}</p>
                 <p><strong>Checked By:</strong> {check.checkedBy}</p>
                 <button
                   className="bg-blue-600 text-white mt-3 px-4 py-2 rounded hover:bg-blue-700"
                   onClick={() => {
-                    setSelectedCheck(check);
+                    setSelectedCheckIndex(index);
                     setShowModal(true);
                   }}
                 >
@@ -157,51 +159,61 @@ const DataViewer: React.FC = () => {
         <p className="text-gray-600">ไม่มีข้อมูลสำหรับเดือนนี้</p>
       )}
 
-      {showModal && selectedCheck && (
+      {showModal && selectedCheckIndex !== null && dailyChecks[selectedCheckIndex] && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start z-50 p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-5xl rounded shadow-lg p-6 relative max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4 text-blue-800">
-              Check Details - {selectedCheck.date}
+              Check Details - {dailyChecks[selectedCheckIndex].date}
             </h2>
 
-            <table className="w-full border border-gray-300 text-sm mb-4">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="p-2 border">Section</th>
-                  <th className="p-2 border">Item</th>
-                  <th className="p-2 border">Status</th>
-                  <th className="p-2 border">Remark</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(Object.entries(safeParseChecks(selectedCheck.checks))).flatMap(
-                  ([section, items], i) =>
-                    items.map((check, j) => (
-                      <tr key={`${i}-${j}`}>
-                        <td className="p-2 border">{section}</td>
-                        <td className="p-2 border">{check.name}</td>
-                        <td className="p-2 border text-center">{check.status ? '✔️' : '❌'}</td>
-                        <td className="p-2 border">{check.remark || '-'}</td>
+            {Object.entries(safeParseChecks(dailyChecks[selectedCheckIndex].checks)).map(
+              ([section, items], idx) => (
+                <div key={idx} className="mb-6">
+                  <h3 className="text-lg font-semibold text-blue-700 mb-2">{section}</h3>
+                  <table className="w-full border border-gray-300 text-sm mb-4">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="p-2 border">Item</th>
+                        <th className="p-2 border">Status</th>
+                        <th className="p-2 border">Remark</th>
                       </tr>
-                    ))
-                )}
-              </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                      {Array.isArray(items) &&
+                        items.map((checkItem, j) => (
+                          <tr key={`${section}-${j}`}>
+                            <td className="p-2 border">{checkItem.name}</td>
+                            <td className="p-2 border text-center">
+                              {checkItem.status ? '✔️' : '❌'}
+                            </td>
+                            <td className="p-2 border">{checkItem.remark || '-'}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            )}
 
-            {Array.isArray(selectedCheck.images) && selectedCheck.images.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                {selectedCheck.images.map((url, index) => (
-                  <div key={index}>
-                    <img src={url} alt={`Check image ${index + 1}`} className="w-full h-auto border rounded" />
-                  </div>
-                ))}
-              </div>
+            {Array.isArray(dailyChecks[selectedCheckIndex].images) &&
+              dailyChecks[selectedCheckIndex].images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                  {dailyChecks[selectedCheckIndex].images.map((url, index) => (
+                    <div key={index}>
+                      <img
+                        src={url}
+                        alt={`Check image ${index + 1}`}
+                        className="w-full h-auto border rounded"
+                      />
+                    </div>
+                  ))}
+                </div>
             )}
 
             <div className="flex justify-end gap-2">
               <button
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                onClick={() => handleDownloadPDF(selectedCheck)}
+                onClick={() => handleDownloadPDF(dailyChecks[selectedCheckIndex])}
               >
                 Download PDF
               </button>
@@ -209,7 +221,7 @@ const DataViewer: React.FC = () => {
                 className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
                 onClick={() => {
                   setShowModal(false);
-                  setSelectedCheck(null);
+                  setSelectedCheckIndex(null);
                 }}
               >
                 Close

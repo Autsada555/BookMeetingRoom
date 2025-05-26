@@ -42,6 +42,7 @@ export interface DailyChecks {
   userID: number;
   checks: string;
   images?: string[];
+  CheckItem: CheckItem;
 }
 
 
