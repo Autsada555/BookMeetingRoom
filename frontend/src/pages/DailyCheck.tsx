@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import { CreateCheckSystems } from "@/services/https/DailyCheckSystems";
 import { DailyChecks } from "@/interfaces/Index";
 
@@ -25,9 +23,9 @@ const sections = [
     checks: ["DVR-05", "Camera Install 10", "Camera Working", "Camera Offline"]
   },
   {
-    title: "Internet & DATA",
+    title: "Internet",
     checks: [
-      "Main Internet TOT", "Main Internet NT(CAT)", "Speed Test Wifi-Public", "Office Connection",
+      "Main Internet TOT", "Main Internet CAT", "Speed Test Wifi-Public", "Office Connection",
       "Access Point", "Website Hotel", "EV Charger", "AP Install", "AP Online", "AP Offline"
     ]
   },
@@ -42,22 +40,50 @@ const sections = [
 ];
 
 const DailyCheckSystemPage = () => {
-  const [formData, setFormData] = useState(() => Object.fromEntries(
-    sections.flatMap(section => section.checks.map(item => [item, ""]))
-  ));
-  const [checkStates, setCheckStates] = useState(() => Object.fromEntries(
-    sections.flatMap(section => section.checks.map(item => [item, false]))
-  ));
   const [checkedBy, setCheckedBy] = useState("");
   const [date, setDate] = useState("");
   const [images, setImages] = useState<File[]>([]);
 
-  const handleFieldChange = (label: string, remark: string) => {
-    setFormData(prev => ({ ...prev, [label]: remark }));
+  const [formData, setFormData] = useState(() => {
+    const initial: any = {};
+    sections.forEach(section => {
+      initial[section.title] = {};
+      section.checks.forEach(item => {
+        initial[section.title][item] = "";
+      });
+    });
+    return initial;
+  });
+
+  const [checkStates, setCheckStates] = useState(() => {
+    const initial: any = {};
+    sections.forEach(section => {
+      initial[section.title] = {};
+      section.checks.forEach(item => {
+        initial[section.title][item] = true;
+      });
+    });
+    return initial;
+  });
+
+  const handleFieldChange = (section: string, label: string, remark: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [label]: remark,
+      }
+    }));
   };
 
-  const handleCheckChange = (label: string, checked: boolean) => {
-    setCheckStates(prev => ({ ...prev, [label]: checked }));
+  const handleCheckChange = (section: string, label: string, checked: boolean) => {
+    setCheckStates(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [label]: checked,
+      }
+    }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,94 +92,40 @@ const DailyCheckSystemPage = () => {
     }
   };
 
-  const toBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-    });
-  };
-
   const handleSave = async () => {
-    const userId = parseInt(localStorage.getItem("userId") || "0"); // แปลงเป็น number
+    const userId = parseInt(localStorage.getItem("userId") || "0");
 
-    const checks = Object.entries(formData).map(([name, remark]) => ({
-      name,
-      checked: checkStates[name],
-      remark
-    }));
+    // ✅ แปลงข้อมูล checks ให้เป็น array of { section, name, checked, remark }
+    const allChecks = sections.flatMap(section =>
+      section.checks.map(item => ({
+        section: section.title,
+        name: item,
+        checked: checkStates[section.title][item],
+        remark: formData[section.title][item],
+      }))
+    );
 
     const payload: DailyChecks = {
       date,
       checkedBy,
       userID: userId,
-      checks,
+      checks: allChecks,
       images: images.map(img => img.name),
     };
 
     try {
       const res = await CreateCheckSystems(payload);
-
-      if (res.status) {
+      if (res) {
         alert("บันทึกสำเร็จ");
-        console.log(res)
+        console.log(res);
       } else {
-        alert("เกิดข้อผิดพลาด: " + res.message);
-        console.log(res)
-
+        alert("เกิดข้อผิดพลาด");
+        console.log(res);
       }
     } catch (error) {
       console.error("Error:", error);
       alert("เชื่อมต่อ backend ไม่ได้");
     }
-  };
-
-
-
-  const exportPDF = async () => {
-    const doc = new jsPDF();
-    doc.text("RAVINDRA RESORT AND SPA DAILY CHECK SYSTEMS", 14, 10);
-    doc.text(`Date: ${date || "-"} | Checked By: ${checkedBy || "-"}`, 14, 18);
-
-    const rows = Object.entries(formData).map(([key, remark]) => [
-      key,
-      checkStates[key] ? "✔️" : "",
-      remark,
-    ]);
-
-    autoTable(doc, {
-      head: [["Item", "Checked", "Remark"]],
-      body: rows,
-      startY: 22,
-    });
-
-    let y = (doc.lastAutoTable?.finalY ?? 20) + 10;
-
-    if (images.length > 0) {
-      doc.text("Uploaded Images:", 14, y);
-      y += 6;
-    }
-
-    for (let i = 0; i < images.length; i++) {
-      const image = images[i];
-      const imgData = await toBase64(image);
-
-      const imgProps = doc.getImageProperties(imgData);
-      const ratio = imgProps.width / imgProps.height;
-      const width = 50;
-      const height = width / ratio;
-
-      if (y + height > 280) {
-        doc.addPage();
-        y = 20;
-      }
-
-      doc.addImage(imgData, "JPEG", 14, y, width, height);
-      y += height + 5;
-    }
-
-    doc.save(`daily-check-${date || "unknown"}.pdf`);
   };
 
   return (
@@ -178,9 +150,9 @@ const DailyCheckSystemPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {section.checks.map((check) => (
               <div key={check} className="flex items-center mb-2 gap-2">
-                <input type="checkbox" checked={checkStates[check]} onChange={(e) => handleCheckChange(check, e.target.checked)} />
+                <input type="checkbox" checked={checkStates[section.title][check]} onChange={(e) => handleCheckChange(section.title, check, e.target.checked)} />
                 <label className="w-48 text-blue-600 font-semibold">{check}</label>
-                <input type="text" value={formData[check]} onChange={(e) => handleFieldChange(check, e.target.value)} placeholder="Remark" className="flex-1 border border-blue-400 rounded-md p-2 text-blue-700" />
+                <input type="text" value={formData[section.title][check]} onChange={(e) => handleFieldChange(section.title, check, e.target.value)} placeholder="Remark" className="flex-1 border border-blue-400 rounded-md p-2 text-blue-700" />
               </div>
             ))}
           </div>
@@ -197,9 +169,8 @@ const DailyCheckSystemPage = () => {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-4">
+      <div className="mt-6">
         <button onClick={handleSave} className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">บันทึกข้อมูล</button>
-        <button onClick={exportPDF} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">ดาวน์โหลด PDF</button>
       </div>
     </div>
   );

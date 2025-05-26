@@ -21,6 +21,7 @@ type Gender struct { //
 type CheckItem struct {
 	BaseModel
 	Name    string `json:"name"`
+	Section string `json:"section"` // ✅ เพิ่ม Section
 	Checked bool   `json:"checked"`
 	Remark  string `json:"remark"`
 }

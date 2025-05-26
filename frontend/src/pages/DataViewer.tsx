@@ -1,97 +1,232 @@
-import React, { useState } from 'react';
-import { utils, writeFile } from 'xlsx';
+import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { GetAllCheckSystems } from '../services/https/DailyCheckSystems';
+import { DailyChecks } from '../interfaces/Index';
 
-type CCTVRecord = {
-    date: string;
-    status: string;
-    remark: string;
-  };
-  
-  const cctvData: { [key: string]: CCTVRecord[] } = {
-    '2025-04': [
-      { date: '2025-04-01', status: 'Checked', remark: 'Normal' },
-      { date: '2025-04-02', status: 'Error', remark: 'No Signal in Cam 4' },
-    ],
-    '2025-05': [
-      { date: '2025-05-01', status: 'Checked', remark: 'Normal' },
-      { date: '2025-05-02', status: 'Checked', remark: 'Normal' },
-    ]
-  };
-  
+interface MonthlyGroupedData {
+  [month: string]: DailyChecks[];
+}
 
-const CCTVDataViewer: React.FC = () => {
-  const [selectedMonth, setSelectedMonth] = useState<string>('2025-05');
+const DataViewer: React.FC = () => {
+  const [groupedData, setGroupedData] = useState<MonthlyGroupedData>({});
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedCheck, setSelectedCheck] = useState<DailyChecks | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
-  const handleDownloadExcel = () => {
-    const ws = utils.json_to_sheet(cctvData[selectedMonth]);
-    const wb = utils.book_new();
-    utils.book_append_sheet(wb, ws, 'CCTV');
-    writeFile(wb, `CCTV_${selectedMonth}.xlsx`);
+  useEffect(() => {
+    handleFetchData();
+  }, []);
+
+  const handleFetchData = async () => {
+    const res = await GetAllCheckSystems();
+    if (res && Array.isArray(res)) {
+      const grouped = groupByMonth(res);
+      setGroupedData(grouped);
+      const months = Object.keys(grouped);
+      if (months.length > 0) setSelectedMonth(months[0]); // เลือกเดือนแรกอัตโนมัติ
+    }
   };
 
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-    autoTable(doc, {
-      head: [['Date', 'Status', 'Remark']],
-      body: cctvData[selectedMonth].map((item) => [item.date, item.status, item.remark]),
+  const groupByMonth = (data: DailyChecks[]) => {
+    const grouped: MonthlyGroupedData = {};
+    data.forEach((item) => {
+      const month = item.date.slice(0, 7); // 'YYYY-MM'
+      if (!grouped[month]) grouped[month] = [];
+      grouped[month].push(item);
     });
-    doc.save(`CCTV_${selectedMonth}.pdf`);
+    return grouped;
+  };
+
+  const safeParseChecks = (jsonStr: string | null): any => {
+    try {
+      return JSON.parse(jsonStr || '{}');
+    } catch {
+      return {};
+    }
+  };
+
+  const handleDownloadPDF = (check: DailyChecks) => {
+    const doc = new jsPDF();
+    doc.text(`Daily Check Report`, 14, 15);
+    doc.text(`Date: ${check.date}`, 14, 25);
+    doc.text(`Checked By: ${check.checkedBy}`, 14, 32);
+
+    const checks = safeParseChecks(check.checks);
+    const rows: any[] = [];
+
+    Object.keys(checks).forEach((sectionName) => {
+      const section = checks[sectionName];
+      section.forEach((checkItem: any) => {
+        rows.push([
+          sectionName,
+          checkItem.name || '',
+          checkItem.status ? '✔️' : '❌',
+          checkItem.remark || '-',
+        ]);
+      });
+    });
+
+    autoTable(doc, {
+      startY: 40,
+      head: [['Section', 'Item', 'Status', 'Remark']],
+      body: rows,
+    });
+
+    if (check.images && Array.isArray(check.images) && check.images.length > 0) {
+      let loadedImages = 0;
+      check.images.forEach((imgUrl: string, i: number) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = imgUrl;
+
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+
+          const imgData = canvas.toDataURL('image/jpeg');
+          if (i !== 0) doc.addPage();
+          doc.text(`Image ${i + 1}`, 14, 20);
+          doc.addImage(imgData, 'JPEG', 14, 30, 180, 120);
+
+          loadedImages++;
+          if (loadedImages === check.images!.length) {
+            doc.save(`CheckSystem_${check.date}.pdf`);
+          }
+        };
+
+        img.onerror = () => {
+          loadedImages++;
+          if (loadedImages === check.images!.length) {
+            doc.save(`CheckSystem_${check.date}.pdf`);
+          }
+        };
+      });
+    } else {
+      doc.save(`CheckSystem_${check.date}.pdf`);
+    }
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-blue-900 mb-6">CCTV Check Data</h1>
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-bold text-blue-900 mb-6">Daily Check Systems</h1>
 
-      <div className="mb-4">
-        <label className="font-semibold text-blue-800 mr-2">Select Month:</label>
+      {/* Select เดือน */}
+      <div className="mb-6">
+        <label htmlFor="monthSelect" className="mr-3 font-semibold">
+          เลือกเดือน:
+        </label>
         <select
-          className="p-2 border border-blue-300 rounded"
+          id="monthSelect"
+          className="border border-gray-400 rounded px-3 py-1"
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(e.target.value)}
         >
-          {Object.keys(cctvData).map((month) => (
-            <option key={month} value={month}>{month}</option>
+          {Object.keys(groupedData).map((month) => (
+            <option key={month} value={month}>
+              {month}
+            </option>
           ))}
         </select>
       </div>
 
-      <table className="w-full border border-blue-300 mb-4">
-        <thead>
-          <tr className="bg-blue-100">
-            <th className="p-2 border">Date</th>
-            <th className="p-2 border">Status</th>
-            <th className="p-2 border">Remark</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cctvData[selectedMonth].map((item, index) => (
-            <tr key={index}>
-              <td className="p-2 border">{item.date}</td>
-              <td className="p-2 border">{item.status}</td>
-              <td className="p-2 border">{item.remark}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* แสดงข้อมูลของเดือนที่เลือก */}
+      {selectedMonth && groupedData[selectedMonth] ? (
+        <div>
+          <h2 className="text-xl font-semibold mb-2 text-blue-700">{selectedMonth}</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {groupedData[selectedMonth].map((check) => (
+              <div key={check.id} className="border border-blue-300 p-4 rounded shadow">
+                <p>
+                  <strong>Date:</strong> {check.date}
+                </p>
+                <p>
+                  <strong>Checked By:</strong> {check.checkedBy}
+                </p>
+                <button
+                  className="bg-blue-600 text-white mt-3 px-4 py-2 rounded hover:bg-blue-700"
+                  onClick={() => {
+                    setSelectedCheck(check);
+                    setShowModal(true);
+                  }}
+                >
+                  View Details
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="text-gray-600">ไม่มีข้อมูลสำหรับเดือนนี้</p>
+      )}
 
-      <div className="space-x-4">
-        <button
-          onClick={handleDownloadExcel}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
-          Download Excel
-        </button>
-        <button
-          onClick={handleDownloadPDF}
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-        >
-          Download PDF
-        </button>
-      </div>
+      {/* Modal */}
+      {showModal && selectedCheck && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start z-50 p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-5xl rounded shadow-lg p-6 relative max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4 text-blue-800">Check Details - {selectedCheck.date}</h2>
+
+            <table className="w-full border border-gray-300 text-sm mb-4">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2 border">Section</th>
+                  <th className="p-2 border">Item</th>
+                  <th className="p-2 border">Status</th>
+                  <th className="p-2 border">Remark</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(
+                  Object.entries(safeParseChecks(selectedCheck.checks) as Record<string, any[]>)
+                ).flatMap(([section, items], i) =>
+                  items.map((check, j) => (
+                    <tr key={`${i}-${j}`}>
+                      <td className="p-2 border">{section}</td>
+                      <td className="p-2 border">{check.name}</td>
+                      <td className="p-2 border text-center">{check.status ? '✔️' : '❌'}</td>
+                      <td className="p-2 border">{check.remark || '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+
+            {/* Images */}
+            {selectedCheck.images && selectedCheck.images.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                {selectedCheck.images.map((url, index) => (
+                  <div key={index}>
+                    <img src={url} alt={`Check image ${index + 1}`} className="w-full h-auto border rounded" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                onClick={() => handleDownloadPDF(selectedCheck)}
+              >
+                Download PDF
+              </button>
+              <button
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedCheck(null);
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default CCTVDataViewer;
+export default DataViewer;

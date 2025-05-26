@@ -30,19 +30,18 @@ export interface UserType {
 
 export interface CheckItem {
   name: string;
+  section: string;
   checked: boolean;
   remark: string;
 }
 
 export interface DailyChecks {
-  ID?: number;                // optional ถ้าใช้ตอนส่งข้อมูลใหม่
+  id: number;
   date: string;
   checkedBy: string;
   userID: number;
-  checks: CheckItem[];
-  images: string[];           // หรือ base64 ถ้าเป็นรูปที่ encode แล้ว
-  createdAt?: string;         // ถ้ามาจาก backend
-  updatedAt?: string;
+  checks: string;
+  images?: string[];
 }
 
 

@@ -19,7 +19,7 @@ type CheckData struct {
 	Date      string             `json:"date"`
 	CheckedBy string             `json:"checkedBy"`
 	UserID    uint               `json:"userID"`
-	Checks    []entity.CheckItem `json:"checks"` // เปลี่ยนจาก map[string] เป็น slice
+	Checks []entity.CheckItem `json:"checks"`
 	Images    []string           `json:"images"`
 }
 

@@ -8,20 +8,21 @@ const GetAllCheckSystems = async () => {
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
   };
 
-  let res = await fetch(`${apiUrl}/checksystems/list`, requestOptions)
-    .then((response) => response.json())
-    .then((res) => {
-      if (res.data) {
-        return res.data;
-      } else {
-        return false;
-      }
-    });
+  const response = await fetch(`${apiUrl}/checksystems/list`, requestOptions);
+  const res = await response.json();
 
-  return res;
-}
+  console.log("🧪 Raw Response from API:", res); // ตรวจสอบตรงนี้
+
+  if (res) {
+    return res;
+  } else {
+    return false;
+  }
+};
+
 
 async function CreateCheckSystems(formData: DailyChecks) {
   const requestOptions: RequestInit = {
