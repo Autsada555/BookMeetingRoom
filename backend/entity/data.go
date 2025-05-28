@@ -1,12 +1,12 @@
 package entity
 
 import (
-	"encoding/json"
-	"log"
+	// "encoding/json"
+	// "log"
 	"time"
 
 	// "github.com/Autsada555/PJ480-React/backend/utils"
-	"gorm.io/datatypes"
+	// "gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -68,48 +68,48 @@ func SetupData(db *gorm.DB) {
 	}
 	db.Create(&bookings)
 
-	checkData := map[string][]CheckItem{
-		"Server Room": {
-			{Name: "Lighting", Remark: ""},
-			{Name: "UPS Switch", Remark: "ไม่ได้เปิด"},
-			{Name: "UPS Battery", Remark: ""},
-		},
-		"Internet": {
-			{Name: "Main Internet TOT", Remark: "ล่ม"},
-			{Name: "Main Internet CAT", Remark: ""},
-		},
-		"Network": {
-			{Name: "Firewall Fortinet", Remark: ""},
-			{Name: "Load Balance TP-Link", Remark: "รีบูตจำเป็น"},
-		},
-		"Server": {
-			{Name: "VMware Server", Remark: ""},
-			{Name: "AD Server", Remark: ""},
-			{Name: "File Server", Remark: "Disk เต็ม"},
-		},
-		"Other": {
-			{Name: "Air Conditioner", Remark: ""},
-		},
-	}
+	// checkData := map[string][]CheckItem{
+	// 	"Server Room": {
+	// 		{Name: "Lighting", Remark: ""},
+	// 		{Name: "UPS Switch", Remark: "ไม่ได้เปิด"},
+	// 		{Name: "UPS Battery", Remark: ""},
+	// 	},
+	// 	"Internet": {
+	// 		{Name: "Main Internet TOT", Remark: "ล่ม"},
+	// 		{Name: "Main Internet CAT", Remark: ""},
+	// 	},
+	// 	"Network": {
+	// 		{Name: "Firewall Fortinet", Remark: ""},
+	// 		{Name: "Load Balance TP-Link", Remark: "รีบูตจำเป็น"},
+	// 	},
+	// 	"Server": {
+	// 		{Name: "VMware Server", Remark: ""},
+	// 		{Name: "AD Server", Remark: ""},
+	// 		{Name: "File Server", Remark: "Disk เต็ม"},
+	// 	},
+	// 	"Other": {
+	// 		{Name: "Air Conditioner", Remark: ""},
+	// 	},
+	// }
 
-	checksJSON, err := json.Marshal(checkData)
-	if err != nil {
-		log.Fatalf("failed to marshal checks: %v", err)
-	}
+	// checksJSON, err := json.Marshal(checkData)
+	// if err != nil {
+	// 	log.Fatalf("failed to marshal checks: %v", err)
+	// }
 
-	imagesJSON, err := json.Marshal([]string{"server_room.jpg", "firewall.png"})
-	if err != nil {
-		log.Fatalf("failed to marshal images: %v", err)
-	}
+	// imagesJSON, err := json.Marshal([]string{"server_room.jpg", "firewall.png"})
+	// if err != nil {
+	// 	log.Fatalf("failed to marshal images: %v", err)
+	// }
 
-	dailyChecks := []DailyCheckSystems{
-		{
-			Date:      "2025-05-15",
-			CheckedBy: "Somchai",
-			UserID:    1,
-			Checks:    datatypes.JSON(checksJSON),
-			Images:    datatypes.JSON(imagesJSON),
-		},
-	}
-	db.Create(&dailyChecks)
+	// dailyChecks := []DailyCheckSystems{
+	// 	{
+	// 		Date:      "2025-05-15",
+	// 		CheckedBy: "Somchai",
+	// 		UserID:    1,
+	// 		Checks:    datatypes.JSON(checksJSON),
+	// 		Images:    datatypes.JSON(imagesJSON),
+	// 	},
+	// }
+	// db.Create(&dailyChecks)
 }
