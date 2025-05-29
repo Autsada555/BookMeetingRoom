@@ -44,7 +44,6 @@ const DataViewer: React.FC = () => {
     const res = await GetAllCheckSystems();
     if (res && Array.isArray(res)) {
       setDailyChecks(res);
-      // สมมติ grouping ตามเดือน (เช่น res[i].date.slice(0,7))
       const grouped: MonthlyGroupedData = {};
       res.forEach((item) => {
         const month = item.date ? item.date.slice(0, 7) : 'Unknown';
@@ -57,6 +56,7 @@ const DataViewer: React.FC = () => {
     }
   };
 
+  // ฟังก์ชันสร้าง PDF พร้อมแสดงรูปทั้งหมดแบบ flex
   const handleDownloadPDF = (check: DailyChecks) => {
     const doc = new jsPDF();
     doc.text(`Daily Check Report`, 14, 15);
@@ -86,24 +86,43 @@ const DataViewer: React.FC = () => {
       body: rows,
     });
 
+    // ...existing code...
     if (Array.isArray(check.images) && check.images.length > 0) {
-      const images = check.images;
-      const maxWidth = 60;   // กว้างสูงสุด
-      const maxHeight = 40;  // สูงสุด
+      const maxWidth = 60;
+      const maxHeight = 40;
       const margin = 10;
-      const imagesPerRow = 3;
+      const imagesPerRow = 2;
       let loadedImages = 0;
-      let yStart = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 60;
+      let yStart = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 10 : 60;
+      const totalImages = check.images.length;
+      const pageHeight = doc.internal.pageSize.getHeight();
 
-      images.forEach((imgUrl: string, i: number) => {
+      // เก็บตำแหน่งและข้อมูลภาพไว้ก่อน
+      const imageQueue: { imgData: string; x: number; y: number; w: number; h: number; page: number }[] = [];
+
+      check.images.forEach((imgUrl: string, i: number) => {
         const img = new window.Image();
         img.crossOrigin = 'Anonymous';
         img.src = imgUrl;
         img.onload = () => {
-          // คำนวณอัตราส่วนเดิม
           let ratio = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
           let imgWidth = img.width * ratio;
           let imgHeight = img.height * ratio;
+
+          // คำนวณตำแหน่ง flex
+          const col = i % imagesPerRow;
+          const row = Math.floor(i / imagesPerRow);
+          let x = 40 + col * (maxWidth + margin);
+          let y = yStart + row * (maxHeight + margin);
+
+          // ถ้า y เกินขอบกระดาษ ให้ขึ้นหน้าใหม่
+          let page = 1;
+          while (y + imgHeight > page * pageHeight - 20) {
+            page++;
+          }
+          if (page > 1) {
+            y = yStart + (row - imagesPerRow * (page - 1)) * (maxHeight + margin);
+          }
 
           // วาดลง canvas เพื่อแปลงเป็น base64
           const canvas = document.createElement('canvas');
@@ -113,22 +132,33 @@ const DataViewer: React.FC = () => {
           ctx?.drawImage(img, 0, 0);
           const imgData = canvas.toDataURL('image/jpeg');
 
-          // คำนวณตำแหน่ง flex
-          const col = i % imagesPerRow;
-          const row = Math.floor(i / imagesPerRow);
-          const x = 14 + col * (maxWidth + margin);
-          const y = yStart + row * (maxHeight + margin);
-
-          doc.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
+          imageQueue[i] = { imgData, x, y, w: imgWidth, h: imgHeight, page };
 
           loadedImages++;
-          if (loadedImages === images.length) {
+          if (loadedImages === totalImages) {
+            // วาดภาพทุกภาพหลังโหลดครบ
+            let currentPage = 1;
+            imageQueue.forEach((imgObj) => {
+              if (imgObj.page > currentPage) {
+                doc.addPage();
+                currentPage = imgObj.page;
+              }
+              doc.addImage(imgObj.imgData, 'JPEG', imgObj.x, imgObj.y, imgObj.w, imgObj.h);
+            });
             doc.save(`CheckSystem_${check.date}.pdf`);
           }
         };
         img.onerror = () => {
           loadedImages++;
-          if (loadedImages === images.length) {
+          if (loadedImages === totalImages) {
+            let currentPage = 1;
+            imageQueue.forEach((imgObj) => {
+              if (imgObj.page > currentPage) {
+                doc.addPage();
+                currentPage = imgObj.page;
+              }
+              doc.addImage(imgObj.imgData, 'JPEG', imgObj.x, imgObj.y, imgObj.w, imgObj.h);
+            });
             doc.save(`CheckSystem_${check.date}.pdf`);
           }
         };
@@ -183,7 +213,8 @@ const DataViewer: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start z-50 p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-5xl rounded shadow-lg p-6 relative max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4 text-blue-800">
-              Check Details - {selectedCheck.date}
+              <p>Check Details - {selectedCheck.date}</p>
+              <p>Checked By: {selectedCheck.checkedBy}</p>
             </h2>
             {(() => {
               let checksData = safeParseChecks(selectedCheck.checks);
