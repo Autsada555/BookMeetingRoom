@@ -18,7 +18,7 @@ const AppRoutes: React.FC = () => {
      <Toaster position="top-right" richColors />
       {isLoggedIn && <Navbar />}
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/book" element={<BookRoom />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/dataviewer" element={<DataViewer />} />

@@ -41,7 +41,7 @@ const Navbar: React.FC = () => {
         localStorage.removeItem('userTypeId');
         localStorage.removeItem('userType');
         window.location.reload();
-        navigate("/login", { replace: true });
+        navigate("/", { replace: true });
         window.location.reload();
       } else {
         toast.error("ออกจากระบบไม่สำเร็จ", {
