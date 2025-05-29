@@ -33,7 +33,7 @@ export interface CheckItem {
 }
 
 export interface DailyChecks {
-  id: number;
+  ID: number;
   date: string;
   checkedBy: string;
   userID: number;

@@ -34,7 +34,8 @@ const DataViewer: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedCheckId, setSelectedCheckId] = useState<string | number | null>(null);
 
-  const selectedCheck = dailyChecks.find((c) => c.id === selectedCheckId);
+  // ให้ selectedCheck อัปเดตตาม selectedCheckId เสมอ
+  const selectedCheck = dailyChecks.find((c) => c.ID === selectedCheckId);
 
   useEffect(() => {
     handleFetchData();
@@ -74,7 +75,7 @@ const DataViewer: React.FC = () => {
         rows.push([
           sectionName,
           checkItem.name || '',
-          checkItem.checked ? '✔️' : '❌',
+          checkItem.checked ? '/' : 'X',
           checkItem.remark || '-',
         ]);
       });
@@ -86,7 +87,6 @@ const DataViewer: React.FC = () => {
       body: rows,
     });
 
-    // ...existing code...
     if (Array.isArray(check.images) && check.images.length > 0) {
       const maxWidth = 60;
       const maxHeight = 40;
@@ -121,7 +121,8 @@ const DataViewer: React.FC = () => {
             page++;
           }
           if (page > 1) {
-            y = yStart + (row - imagesPerRow * (page - 1)) * (maxHeight + margin);
+            // หน้าใหม่ y เริ่มที่ 20
+            y = -30 + (row - imagesPerRow * (page - 1)) * (maxHeight + margin);
           }
 
           // วาดลง canvas เพื่อแปลงเป็น base64
@@ -168,6 +169,13 @@ const DataViewer: React.FC = () => {
     }
   };
 
+  // --- แก้ไขจุดนี้ให้ Modal อัปเดตข้อมูลถูกต้องทุกครั้งที่เลือก ---
+  const handleOpenModal = (id: string | number) => {
+    setSelectedCheckId(id);
+    setShowModal(false);
+    setTimeout(() => setShowModal(true), 0); // ให้ state อัปเดตก่อนเปิด Modal
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-3xl font-bold text-blue-900 mb-6">Daily Check Systems</h1>
@@ -189,15 +197,12 @@ const DataViewer: React.FC = () => {
           <h2 className="text-xl font-semibold mb-2 text-blue-700">{selectedMonth}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {groupedData[selectedMonth].map((check) => (
-              <div key={check.id} className="border border-blue-300 p-4 rounded shadow">
+              <div key={check.ID} className="border border-blue-300 p-4 rounded shadow">
                 <p><strong>Date:</strong> {check.date}</p>
                 <p><strong>Checked By:</strong> {check.checkedBy}</p>
                 <button
                   className="bg-blue-600 text-white mt-3 px-4 py-2 rounded hover:bg-blue-700"
-                  onClick={() => {
-                    setSelectedCheckId(check.id);
-                    setShowModal(true);
-                  }}
+                  onClick={() => handleOpenModal(check.ID)}
                 >
                   View Details
                 </button>
@@ -212,33 +217,25 @@ const DataViewer: React.FC = () => {
       {showModal && selectedCheck && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start z-50 p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-5xl rounded shadow-lg p-6 relative max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4 text-blue-800">
-              <div className="flex justify-between ">
-                <p>Check Details - {selectedCheck.date}</p>
-                <div className='flex '>
-                  <button
-                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
-                    onClick={() => handleDownloadPDF(selectedCheck)}
-                  >
-                    Download PDF
-                  </button>
-                  <button
-                    className="bg-gray-300 text-gray-800 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-400 text-xl"
-                    aria-label="Close"
-                    onClick={() => {
-                      setShowModal(false);
-                      setSelectedCheckId(null);
-                    }}
-                  >
-                    X
-                  </button>
-                </div>
-              </div>
-              <div className='flex'>
-                <p>Checked By :_ </p>
-                <p className="text-red-600">{selectedCheck.checkedBy}</p>
-              </div>
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-blue-800">
+                Check Details - {selectedCheck.date}
+              </h2>
+              <button
+                className="bg-gray-300 text-gray-800 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-400 text-xl"
+                aria-label="Close"
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedCheckId(null);
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div className='flex mb-4'>
+              <span className="font-semibold mr-2">Checked By:</span>
+              <span className="text-red-600">{selectedCheck.checkedBy}</span>
+            </div>
             {(() => {
               let checksData = safeParseChecks(selectedCheck.checks);
               if (Array.isArray(checksData)) {
@@ -289,13 +286,13 @@ const DataViewer: React.FC = () => {
               )}
             <div className="flex justify-end gap-2">
               <button
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
                 onClick={() => handleDownloadPDF(selectedCheck)}
               >
                 Download PDF
               </button>
               <button
-                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 text-sm"
                 onClick={() => {
                   setShowModal(false);
                   setSelectedCheckId(null);
