@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { CreateCheckSystems } from "@/services/https/DailyCheckSystems";
 import { DailyChecks } from "@/interfaces/Index";
+import { ImageUpload } from "@/components/uploadimage";
 
 const sections = [
   {
@@ -42,7 +43,7 @@ const sections = [
 const DailyCheckSystemPage = () => {
   const [checkedBy, setCheckedBy] = useState("");
   const [date, setDate] = useState("");
-  const [images, setImages] = useState<File[]>([]);
+  const [images, setImages] = useState<string[]>([]);
 
   type SectionCheckState = {
     [section: string]: {
@@ -98,11 +99,11 @@ const DailyCheckSystemPage = () => {
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImages(Array.from(e.target.files));
-    }
-  };
+  // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (e.target.files) {
+  //     setImages(Array.from(e.target.files));
+  //   }
+  // };
 
   const handleSave = async () => {
     const userId = parseInt(localStorage.getItem("userId") || "0");
@@ -123,11 +124,12 @@ const DailyCheckSystemPage = () => {
       checkedBy,
       userID: userId,
       checks: allChecks,
-      images: images.map(img => img.name),
+      images: images,
     };
 
     try {
       const res = await CreateCheckSystems(payload);
+      console.log(res);
       if (res) {
         alert("บันทึกสำเร็จ");
         console.log(res);
@@ -174,10 +176,10 @@ const DailyCheckSystemPage = () => {
 
       <div className="mb-6">
         <label className="block text-blue-700 font-semibold mb-1">อัปโหลดรูปภาพ (หลายภาพ)</label>
-        <input type="file" accept="image/*" multiple onChange={handleImageChange} className="w-full border border-blue-400 rounded-md p-2" />
+        <ImageUpload setData={setImages} />
         <div className="mt-2 flex flex-wrap gap-2">
           {images.map((img, idx) => (
-            <img key={idx} src={URL.createObjectURL(img)} alt={`preview-${idx}`} className="w-24 h-24 object-cover rounded shadow" />
+            <img key={idx} src={img} alt={`preview-${idx}`} className="w-24 h-24 object-cover rounded shadow" />
           ))}
         </div>
       </div>

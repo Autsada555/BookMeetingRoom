@@ -88,21 +88,39 @@ const DataViewer: React.FC = () => {
 
     if (Array.isArray(check.images) && check.images.length > 0) {
       const images = check.images;
+      const maxWidth = 60;   // กว้างสูงสุด
+      const maxHeight = 40;  // สูงสุด
+      const margin = 10;
+      const imagesPerRow = 3;
       let loadedImages = 0;
+      let yStart = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 60;
+
       images.forEach((imgUrl: string, i: number) => {
         const img = new window.Image();
         img.crossOrigin = 'Anonymous';
         img.src = imgUrl;
         img.onload = () => {
+          // คำนวณอัตราส่วนเดิม
+          let ratio = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
+          let imgWidth = img.width * ratio;
+          let imgHeight = img.height * ratio;
+
+          // วาดลง canvas เพื่อแปลงเป็น base64
           const canvas = document.createElement('canvas');
           canvas.width = img.width;
           canvas.height = img.height;
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0);
           const imgData = canvas.toDataURL('image/jpeg');
-          if (i !== 0) doc.addPage();
-          doc.text(`Image ${i + 1}`, 14, 20);
-          doc.addImage(imgData, 'JPEG', 14, 30, 180, 120);
+
+          // คำนวณตำแหน่ง flex
+          const col = i % imagesPerRow;
+          const row = Math.floor(i / imagesPerRow);
+          const x = 14 + col * (maxWidth + margin);
+          const y = yStart + row * (maxHeight + margin);
+
+          doc.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
+
           loadedImages++;
           if (loadedImages === images.length) {
             doc.save(`CheckSystem_${check.date}.pdf`);

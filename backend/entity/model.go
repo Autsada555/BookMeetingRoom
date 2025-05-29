@@ -32,7 +32,7 @@ type DailyCheckSystems struct {
 	CheckedBy string         `json:"checkedBy"`
 	UserID    uint           `json:"userID"`
 	Checks    datatypes.JSON `json:"checks"`
-	Images    datatypes.JSON `json:"images"`
+	Images    datatypes.JSON `json:"images" gorm:"type:longtext"` // ใช้สำหรับเก็บ URL ของรูปภาพ
 }
 
 type User struct { //
