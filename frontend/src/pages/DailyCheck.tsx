@@ -46,6 +46,9 @@ const DailyCheckSystemPage = () => {
   const [checkedBy, setCheckedBy] = useState("");
   const [date, setDate] = useState("");
   const [images, setImages] = useState<string[]>([]);
+  const [dateError, setDateError] = useState(false);
+  const [nameError, setNameError] = useState(false);
+
 
   type SectionCheckState = {
     [section: string]: {
@@ -108,9 +111,25 @@ const DailyCheckSystemPage = () => {
   // };
 
   const handleSave = async () => {
-    const userId = parseInt(localStorage.getItem("userId") || "0");
+    let hasError = false;
+    if (!date) {
+      setDateError(true);
+      hasError = true;
+    }
+    if (!checkedBy.trim()) {
+      setNameError(true);
+      hasError = true;
+    }
+    if (hasError) {
+      toast.error("กรุณากรอกข้อมูลให้ครบ", {
+        description: "ต้องเลือกวันที่และกรอกชื่อผู้ตรวจสอบ",
+      });
+      return;
+    }
+    setDateError(false);
+    setNameError(false);
 
-    // ✅ แปลงข้อมูล checks ให้เป็น array of { section, name, checked, remark }
+    const userId = parseInt(localStorage.getItem("userId") || "0");
     const allChecks = sections.flatMap(section =>
       section.checks.map(item => ({
         section: section.title,
@@ -121,7 +140,7 @@ const DailyCheckSystemPage = () => {
     );
 
     const payload: DailyChecks = {
-      id: 0, // or generate a temporary id if needed
+      id: 0,
       date,
       checkedBy,
       userID: userId,
@@ -131,17 +150,14 @@ const DailyCheckSystemPage = () => {
 
     try {
       const res = await CreateCheckSystems(payload);
-      console.log(res);
       if (res) {
         toast.success("บันทึกสำเร็จ", {
           description: "บันทึกสำเร็จ ข้อมูลอยู่ในระบบแล้ว",
         });
-        console.log(res);
       } else {
         toast.error("บันทึกไม่สำเร็จ", {
           description: "มีบางอย่างผิดปกติทำให้บันทึกในระบบไม่ได้",
         });
-        console.log(res);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -156,8 +172,7 @@ const DailyCheckSystemPage = () => {
       <h1 className="text-2xl font-bold text-blue-700 mb-4">RAVINDRA RESORT AND SPA DAILY CHECK SYSTEMS</h1>
       <div className="flex justify-between">
         <p className="text-blue-600 mb-4">Section: IT</p>
-        <div className="mt-6">
-        </div>
+        <div className="mt-6"></div>
         <Link to="/dataviewer">
           <button className="bg-slate-500  text-white px-4 py-2 rounded hover:bg-slate-700 ">ไปหน้าแสดงข้อมูล</button>
         </Link>
@@ -166,11 +181,34 @@ const DailyCheckSystemPage = () => {
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex-1">
           <label className="block text-blue-700 font-semibold mb-1">Date</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full border border-blue-400 rounded-md p-2" />
+          <input
+            type="date"
+            value={date}
+            onChange={e => {
+              setDate(e.target.value);
+              setDateError(false);
+            }}
+            className={`w-full border ${dateError ? "border-red-500" : "border-blue-400"} rounded-md p-2`}
+          />
+          {dateError && (
+            <span className="text-red-500 text-sm mt-1 block">กรุณาเลือกวันที่</span>
+          )}
         </div>
         <div className="flex-1">
           <label className="block text-blue-700 font-semibold mb-1">Checked By</label>
-          <input type="text" value={checkedBy} onChange={e => setCheckedBy(e.target.value)} placeholder="Your Name" className="w-full border border-blue-400 rounded-md p-2" />
+          <input
+            type="text"
+            value={checkedBy}
+            onChange={e => {
+              setCheckedBy(e.target.value);
+              setNameError(false);
+            }}
+            placeholder="Your Name"
+            className={`w-full border ${nameError ? "border-red-500" : "border-blue-400"} rounded-md p-2`}
+          />
+          {nameError && (
+            <span className="text-red-500 text-sm mt-1 block">กรุณากรอกชื่อผู้ตรวจสอบ</span>
+          )}
         </div>
       </div>
 
@@ -200,7 +238,12 @@ const DailyCheckSystemPage = () => {
       </div>
       <div className="flex justify-between">
         <div className="mt-6 ">
-          <button onClick={handleSave} className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">บันทึกข้อมูล</button>
+          <button
+            onClick={handleSave}
+            className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
+          >
+            บันทึกข้อมูล
+          </button>
         </div>
         <div className="mt-6">
           <Link to="/dataviewer">

@@ -28,7 +28,7 @@ type CheckItem struct {
 type DailyCheckSystems struct {
 	BaseModel
 	// ID        uint           `gorm:"primaryKey"`
-	Date      string         `json:"date"`
+	Date      string         `json:"date" valid:"required~กรุณาเลือกวันที่"`
 	CheckedBy string         `json:"checkedBy"`
 	UserID    uint           `json:"userID"`
 	Checks    datatypes.JSON `json:"checks"`
