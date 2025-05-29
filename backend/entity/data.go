@@ -30,10 +30,10 @@ func SetupData(db *gorm.DB) {
 	users := []User{
 		{
 			BaseModel:  BaseModel{ID: 1},
-			FirstName:  "Somchai",
-			LastName:   "Somchai",
-			Email:      "somchai@somchai.com",
-			Password:   "somchai1234",
+			FirstName:  "Admin",
+			LastName:   "Admin",
+			Email:      "Admin@Admin.com",
+			Password:   "Admin1234",
 			UserTypeID: 999,
 			GenderID:   1,
 		},
