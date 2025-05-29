@@ -10,9 +10,9 @@ const Dashboard: React.FC = () => {
   };
 
   const DataStatus = {
-    totalCameras: 73,
-    online: 65,
-    offline: 8,
+    totalData: 'Over 1000',
+    Check: 65,
+    // offline: 8,
     issuesReported: 3
   };
 
@@ -41,16 +41,16 @@ const Dashboard: React.FC = () => {
         <div className="bg-white shadow-lg rounded-2xl p-6 border border-blue-200">
           <h2 className="text-xl font-semibold text-blue-700 mb-4">Data Overview</h2>
           <ul className="text-blue-600 space-y-2">
-            <li>Total Cameras: <strong>{DataStatus.totalCameras}</strong></li>
-            <li>Online: <strong>{DataStatus.online}</strong></li>
-            <li>Offline: <strong>{DataStatus.offline}</strong></li>
-            <li>Issues Reported: <strong>{DataStatus.issuesReported}</strong></li>
+            <li>ข้อมูลทั้งหมด: <strong>{DataStatus.totalData}</strong></li>
+            <li>เช็คแล้ว: <strong>{DataStatus.Check}</strong></li>
+            {/* <li>Offline: <strong>{DataStatus.offline}</strong></li> */}
+            <li>ปัญหาที่พบ: <strong>{DataStatus.issuesReported}</strong></li>
           </ul>
           <Link
-            to="/dataviwer"
+            to="/dataviewer"
             className="inline-block mt-4 text-blue-700 hover:underline"
           >
-            Go to CCTV Monitoring →
+            ไปหน้าแสดงข้อมูล→
           </Link>
         </div>
       </div>

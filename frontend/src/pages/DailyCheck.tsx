@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { CreateCheckSystems } from "@/services/https/DailyCheckSystems";
 import { DailyChecks } from "@/interfaces/Index";
 import { ImageUpload } from "@/components/uploadimage";
+import { toast } from "sonner";
 
 const sections = [
   {
@@ -131,22 +132,33 @@ const DailyCheckSystemPage = () => {
       const res = await CreateCheckSystems(payload);
       console.log(res);
       if (res) {
-        alert("บันทึกสำเร็จ");
+        toast.success("บันทึกสำเร็จ", {
+          description: "บันทึกสำเร็จ ข้อมูลอยู่ในระบบแล้ว",
+        });
         console.log(res);
       } else {
-        alert("เกิดข้อผิดพลาด");
+        toast.error("บันทึกไม่สำเร็จ", {
+          description: "มีบางอย่างผิดปกติทำให้บันทึกในระบบไม่ได้",
+        });
         console.log(res);
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("เชื่อมต่อ backend ไม่ได้");
+      toast.error("บันทึกไม่สำเร็จ", {
+        description: "มีบางอย่างผิดปกติทำให้บันทึกในระบบไม่ได้",
+      });
     }
   };
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold text-blue-700 mb-4">RAVINDRA RESORT AND SPA DAILY CHECK SYSTEMS</h1>
-      <p className="text-blue-600 mb-4">Section: IT</p>
+      <div className="flex justify-between">
+        <p className="text-blue-600 mb-4">Section: IT</p>
+        <div className="mt-6">
+        </div>
+        <button onClick={handleSave} className="bg-slate-500  text-white px-4 py-2 rounded hover:bg-slate-700 ">ไปหน้าแสดงข้อมูล</button>
+      </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex-1">
@@ -183,9 +195,13 @@ const DailyCheckSystemPage = () => {
           ))}
         </div>
       </div>
-
-      <div className="mt-6">
-        <button onClick={handleSave} className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">บันทึกข้อมูล</button>
+      <div className="flex justify-between">
+        <div className="mt-6 ">
+          <button onClick={handleSave} className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">บันทึกข้อมูล</button>
+        </div>
+        <div className="mt-6">
+          <button onClick={handleSave} className="bg-slate-500  text-white px-4 py-2 rounded hover:bg-slate-700 ">ไปหน้าแสดงข้อมูล</button>
+        </div>
       </div>
     </div>
   );
