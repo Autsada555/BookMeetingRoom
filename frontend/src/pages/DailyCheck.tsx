@@ -3,6 +3,7 @@ import { CreateCheckSystems } from "@/services/https/DailyCheckSystems";
 import { DailyChecks } from "@/interfaces/Index";
 import { ImageUpload } from "@/components/uploadimage";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const sections = [
   {
@@ -157,7 +158,9 @@ const DailyCheckSystemPage = () => {
         <p className="text-blue-600 mb-4">Section: IT</p>
         <div className="mt-6">
         </div>
-        <button onClick={handleSave} className="bg-slate-500  text-white px-4 py-2 rounded hover:bg-slate-700 ">ไปหน้าแสดงข้อมูล</button>
+        <Link to="/dataviewer">
+          <button className="bg-slate-500  text-white px-4 py-2 rounded hover:bg-slate-700 ">ไปหน้าแสดงข้อมูล</button>
+        </Link>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -200,7 +203,9 @@ const DailyCheckSystemPage = () => {
           <button onClick={handleSave} className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">บันทึกข้อมูล</button>
         </div>
         <div className="mt-6">
-          <button onClick={handleSave} className="bg-slate-500  text-white px-4 py-2 rounded hover:bg-slate-700 ">ไปหน้าแสดงข้อมูล</button>
+          <Link to="/dataviewer">
+            <button className="bg-slate-500  text-white px-4 py-2 rounded hover:bg-slate-700 ">ไปหน้าแสดงข้อมูล</button>
+          </Link>
         </div>
       </div>
     </div>

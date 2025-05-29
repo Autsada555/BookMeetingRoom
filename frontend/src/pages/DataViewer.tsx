@@ -213,8 +213,31 @@ const DataViewer: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start z-50 p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-5xl rounded shadow-lg p-6 relative max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4 text-blue-800">
-              <p>Check Details - {selectedCheck.date}</p>
-              <p>Checked By: {selectedCheck.checkedBy}</p>
+              <div className="flex justify-between ">
+                <p>Check Details - {selectedCheck.date}</p>
+                <div className='flex '>
+                  <button
+                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 text-sm"
+                    onClick={() => handleDownloadPDF(selectedCheck)}
+                  >
+                    Download PDF
+                  </button>
+                  <button
+                    className="bg-gray-300 text-gray-800 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-400 text-xl"
+                    aria-label="Close"
+                    onClick={() => {
+                      setShowModal(false);
+                      setSelectedCheckId(null);
+                    }}
+                  >
+                    X
+                  </button>
+                </div>
+              </div>
+              <div className='flex'>
+                <p>Checked By :_ </p>
+                <p className="text-red-600">{selectedCheck.checkedBy}</p>
+              </div>
             </h2>
             {(() => {
               let checksData = safeParseChecks(selectedCheck.checks);
