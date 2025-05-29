@@ -17,7 +17,7 @@ function groupChecksBySection(checksArr: any[]): Record<string, any[]> {
   }, {} as Record<string, any[]>);
 }
 
-function safeParseChecks(checks: string | undefined | null): any {
+function safeParseChecks(checks: string | any[] | undefined | null): any {
   if (!checks) return {};
   try {
     const parsed = typeof checks === 'string' ? JSON.parse(checks) : checks;

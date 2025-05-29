@@ -44,8 +44,20 @@ const DailyCheckSystemPage = () => {
   const [date, setDate] = useState("");
   const [images, setImages] = useState<File[]>([]);
 
-  const [formData, setFormData] = useState(() => {
-    const initial: any = {};
+  type SectionCheckState = {
+    [section: string]: {
+      [label: string]: boolean;
+    };
+  };
+  type SectionRemarkState = {
+    [section: string]: {
+      [label: string]: string;
+    };
+  };
+
+
+  const [formData, setFormData] = useState<SectionRemarkState>(() => {
+    const initial: SectionRemarkState = {};
     sections.forEach(section => {
       initial[section.title] = {};
       section.checks.forEach(item => {
@@ -55,8 +67,8 @@ const DailyCheckSystemPage = () => {
     return initial;
   });
 
-  const [checkStates, setCheckStates] = useState(() => {
-    const initial: any = {};
+  const [checkStates, setCheckStates] = useState<SectionCheckState>(() => {
+    const initial: SectionCheckState = {};
     sections.forEach(section => {
       initial[section.title] = {};
       section.checks.forEach(item => {
@@ -67,7 +79,7 @@ const DailyCheckSystemPage = () => {
   });
 
   const handleFieldChange = (section: string, label: string, remark: string) => {
-    setFormData(prev => ({
+    setFormData((prev: SectionRemarkState) => ({
       ...prev,
       [section]: {
         ...prev[section],
@@ -77,7 +89,7 @@ const DailyCheckSystemPage = () => {
   };
 
   const handleCheckChange = (section: string, label: string, checked: boolean) => {
-    setCheckStates(prev => ({
+    setCheckStates((prev: SectionCheckState) => ({
       ...prev,
       [section]: {
         ...prev[section],
@@ -106,6 +118,7 @@ const DailyCheckSystemPage = () => {
     );
 
     const payload: DailyChecks = {
+      id: 0, // or generate a temporary id if needed
       date,
       checkedBy,
       userID: userId,

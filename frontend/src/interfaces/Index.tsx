@@ -7,12 +7,9 @@ export interface User {
   LastName: string;
   Email: string;
   Password?: string;
-  // Phone: string;
-  // UserName?: string;
-  // Address: string;
+
   GenderID: number;
   UserTypeID: number;
-  // CreditCardNumber: string;
 
   Gender: Gender;
   UserType: UserType;
@@ -27,8 +24,8 @@ export interface UserType {
   ID: number;
   Name: string;
 }
-
 export interface CheckItem {
+  id?: number;
   name: string;
   section: string;
   checked: boolean;
@@ -40,11 +37,9 @@ export interface DailyChecks {
   date: string;
   checkedBy: string;
   userID: number;
-  checks: string;
+  checks: string | CheckItem[];
   images?: string[];
-  CheckItem: CheckItem;
 }
-
 
 
 
