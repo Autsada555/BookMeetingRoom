@@ -1,119 +1,147 @@
+import { User } from '@/interfaces/Index';
+import { GetUserByID, UpdateUser } from '@/services/https/User';
 import React, { useEffect, useState } from 'react';
-
-type Booking = {
-  room: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-};
-
-type User = {
-  name: string;
-  email: string;
-  position: string;
-};
+import { FaUserCircle } from 'react-icons/fa';
 
 const UserProfile: React.FC = () => {
-  const [user, setUser] = useState<User>({
-    name: '',
-    email: '',
-    position: ''
-  });
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editData, setEditData] = useState({ FirstName: '', LastName: '', Password: '', GenderID: 0, UserTypeID: 0 });
+  const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    // mock user info
-    setUser({ name: 'สมชาย รักจอง', email: 'somchai@company.com', position: 'เจ้าหน้าที่' });
-
-    // mock bookings (จาก backend จริงควรใช้ email ของ user)
-    fetch('/api/bookings')
-      .then(res => res.json())
-      .then(data => {
-        const myBookings = data.filter((b: any) => b.bookedBy === 'สมชาย รักจอง');
-        setBookings(myBookings);
-      });
+    const fetchUser = async () => {
+      try {
+        const idStr = window.localStorage.getItem("userId");
+        if (!idStr) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        const id = Number(idStr);
+        setUserId(id);
+        const res = await GetUserByID(id);
+        console.log("User Profile Data:", res); // Debugging line
+        setUser(res);
+        setEditData({
+          FirstName: res.FirstName || '',
+          LastName: res.LastName || '',
+          Password: '',
+          GenderID: res.GenderID || 0,
+          UserTypeID: res.UserTypeID || 0,
+        });
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setEditData({ ...editData, [name]: value });
   };
 
-  const saveProfile = () => {
-    alert('โปรไฟล์ถูกบันทึกแล้ว ✅');
-    // fetch('/api/user/update', ...) เป็นต้น
+  const saveProfile = async () => {
+    if (!userId) return;
+    const updateRes = await UpdateUser(editData as User, userId);
+    if (updateRes.status) {
+      setUser((prev) => prev ? { ...prev, ...editData } : null);
+      alert('บันทึกโปรไฟล์สำเร็จ');
+    } else {
+      alert('เกิดข้อผิดพลาด: ' + updateRes.message);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="max-w-4xl mx-auto mt-10 p-6 bg-white shadow rounded text-center text-red-600">
+        ไม่พบข้อมูลผู้ใช้
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 p-6 bg-white shadow rounded">
-      <h2 className="text-2xl font-bold text-primary mb-6">โปรไฟล์ผู้ใช้</h2>
+    <div className="max-w-2xl mx-auto mt-10 p-8 bg-white shadow-lg rounded-lg">
+      <div className="flex flex-col items-center mb-8">
+        <FaUserCircle className="text-7xl text-blue-400 mb-2" />
+        <h2 className="text-3xl font-bold text-blue-800 mb-1">{user.FirstName} {user.LastName}</h2>
+        <span className="text-gray-500">{user.Email}</span>
+      </div>
 
-      <div className="grid gap-4 mb-6">
+      <div className="grid gap-6">
         <div>
-          <label className="block font-medium mb-1">ชื่อ-สกุล</label>
+          <label className="block font-medium mb-1 text-blue-700">ชื่อ</label>
           <input
-            name="name"
-            value={user.name}
+            name="FirstName"
+            value={editData.FirstName}
             onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-blue-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
         </div>
-
         <div>
-          <label className="block font-medium mb-1">อีเมล</label>
+          <label className="block font-medium mb-1 text-blue-700">นามสกุล</label>
           <input
-            name="email"
-            value={user.email}
+            name="LastName"
+            value={editData.LastName}
+            onChange={handleChange}
+            className="w-full border border-blue-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
+        </div>
+        <div>
+          <label className="block font-medium mb-1 text-blue-700">อีเมล</label>
+          <input
+            name="Email"
+            value={user.Email}
             disabled
             className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-500"
           />
         </div>
-
         <div>
-          <label className="block font-medium mb-1">ตำแหน่ง</label>
+          <label className="block font-medium mb-1 text-blue-700">รหัสผ่าน (เปลี่ยนรหัสผ่านใหม่)</label>
           <input
-            name="position"
-            value={user.position}
+            name="Password"
+            type="password"
+            value={editData.Password}
             onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
+            className="w-full border border-blue-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
+            placeholder="********"
           />
         </div>
-
+        <div>
+          <label className="block font-medium mb-1 text-blue-700">เพศ</label>
+          <input
+            name="Gender"
+            value={user.Gender?.Name || ''}
+            disabled
+            className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-500"
+          />
+        </div>
+        <div>
+          <label className="block font-medium mb-1 text-blue-700">ประเภทผู้ใช้</label>
+          <input
+            name="UserType"
+            value={user.UserType?.Name || ''}
+            disabled
+            className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-500"
+          />
+        </div>
         <button
           onClick={saveProfile}
-          className="bg-primary hover:bg-primary-dark text-white py-2 rounded mt-2 w-full"
+          className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded mt-2 w-full font-semibold transition"
         >
           บันทึกโปรไฟล์
         </button>
-      </div>
-
-      <h3 className="text-xl font-semibold text-primary mt-8 mb-2">ประวัติการจองห้องประชุม</h3>
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse border border-gray-300">
-          <thead className="bg-primary text-white">
-            <tr>
-              <th className="px-4 py-2 border">ห้อง</th>
-              <th className="px-4 py-2 border">วันที่</th>
-              <th className="px-4 py-2 border">เริ่ม</th>
-              <th className="px-4 py-2 border">สิ้นสุด</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center py-4">ยังไม่มีประวัติการจอง</td>
-              </tr>
-            ) : (
-              bookings.map((b, idx) => (
-                <tr key={idx} className="hover:bg-blue-50 text-center">
-                  <td className="px-4 py-2 border">{b.room}</td>
-                  <td className="px-4 py-2 border">{b.date}</td>
-                  <td className="px-4 py-2 border">{b.startTime}</td>
-                  <td className="px-4 py-2 border">{b.endTime}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
       </div>
     </div>
   );

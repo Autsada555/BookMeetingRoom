@@ -75,8 +75,8 @@ func GetUserByID(c *gin.Context) {
 
 	// Get data from the database and check for errors
 	if err := entity.DB().Model(&entity.User{}).
-		Preload("Gender").                                          // Preload Gender to load the related gender data
-		Omit("CheckpaymentID", "UserName", "Password", "UserType"). // Preload UserType to load the related user type data
+		Preload("Gender").Preload("UserType").                                      // Preload Gender to load the related gender data
+		Omit("Password"). // Preload UserType to load the related user type data
 		Where("id = ?", customerID).                                // Explicitly use users.id to avoid ambiguity
 		First(&user).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
