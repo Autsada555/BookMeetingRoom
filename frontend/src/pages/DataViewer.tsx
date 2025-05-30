@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { GetAllCheckSystems } from '../services/https/DailyCheckSystems';
+import { GetAllCheckSystems, UpdateCheckSystems, DeleteCheckSystems } from '../services/https/DailyCheckSystems';
 import { DailyChecks } from '../interfaces/Index';
+import { toast } from 'sonner';
+import { FiSettings } from "react-icons/fi"; // เพิ่มที่ด้านบน
+
 
 interface MonthlyGroupedData {
   [month: string]: DailyChecks[];
@@ -32,9 +35,11 @@ const DataViewer: React.FC = () => {
   const [groupedData, setGroupedData] = useState<MonthlyGroupedData>({});
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
-  const [selectedCheckId, setSelectedCheckId] = useState<string | number | null>(null);
+  const [selectedCheckId, setSelectedCheckId] = useState<number | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [formUpdateData, setFormUpdateData] = useState<Partial<DailyChecks>>({});
+  const [showActionMenu, setShowActionMenu] = useState<number | null>(null);
 
-  // ให้ selectedCheck อัปเดตตาม selectedCheckId เสมอ
   const selectedCheck = dailyChecks.find((c) => c.ID === selectedCheckId);
 
   useEffect(() => {
@@ -57,7 +62,60 @@ const DataViewer: React.FC = () => {
     }
   };
 
-  // ฟังก์ชันสร้าง PDF พร้อมแสดงรูปทั้งหมดแบบ flex
+  const handleOpenModal = (id: number) => {
+    setSelectedCheckId(id);
+    setShowModal(false);
+    setTimeout(() => setShowModal(true), 0);
+  };
+
+  const handleUpdate = async (id: number) => {
+    try {
+      const res = await UpdateCheckSystems(formUpdateData as DailyChecks, id);
+      if (res.status) {
+        toast.success("แก้ไขข้อมูลสำเร็จ", {
+          description: "แก้ไขข้อมูลสำเร็จ",
+        });
+        setShowEditModal(false);
+        setShowModal(false);
+        setFormUpdateData({});
+        await handleFetchData();
+      } else {
+        toast.error("เกิดข้อผิดพลาดในการแก้ไขข้อมูล", {
+          description: res.message || "เกิดข้อผิดพลาดในการแก้ไขข้อมูล",
+        });
+      }
+    } catch (error) {
+      console.error("Error editing check:", error);
+      toast.error("เกิดข้อผิดพลาดในการแก้ไขข้อมูล", {
+        description: "เกิดข้อผิดพลาดในการแก้ไขข้อมูล",
+      });
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("ยืนยันการลบข้อมูลนี้?")) return;
+    try {
+      const res = await DeleteCheckSystems(id);
+      if (res.status) {
+        toast.success("ลบข้อมูลสำเร็จ", {
+          description: "ลบข้อมูลสำเร็จ",
+        });
+        setShowModal(false);
+        setSelectedCheckId(null);
+        await handleFetchData();
+      } else {
+        toast.error("เกิดข้อผิดพลาดในการลบข้อมูล", {
+          description: res.message || "เกิดข้อผิดพลาดในการลบข้อมูล",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting check:", error);
+      toast.error("เกิดข้อผิดพลาดในการลบข้อมูล", {
+        description: "เกิดข้อผิดพลาดในการลบข้อมูล",
+      });
+    }
+  };
+
   const handleDownloadPDF = (check: DailyChecks) => {
     const doc = new jsPDF();
     doc.text(`Daily Check Report`, 14, 15);
@@ -96,8 +154,6 @@ const DataViewer: React.FC = () => {
       let yStart = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 10 : 60;
       const totalImages = check.images.length;
       const pageHeight = doc.internal.pageSize.getHeight();
-
-      // เก็บตำแหน่งและข้อมูลภาพไว้ก่อน
       const imageQueue: { imgData: string; x: number; y: number; w: number; h: number; page: number }[] = [];
 
       check.images.forEach((imgUrl: string, i: number) => {
@@ -108,36 +164,26 @@ const DataViewer: React.FC = () => {
           let ratio = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
           let imgWidth = img.width * ratio;
           let imgHeight = img.height * ratio;
-
-          // คำนวณตำแหน่ง flex
           const col = i % imagesPerRow;
           const row = Math.floor(i / imagesPerRow);
           let x = 40 + col * (maxWidth + margin);
           let y = yStart + row * (maxHeight + margin);
-
-          // ถ้า y เกินขอบกระดาษ ให้ขึ้นหน้าใหม่
           let page = 1;
           while (y + imgHeight > page * pageHeight - 20) {
             page++;
           }
           if (page > 1) {
-            // หน้าใหม่ y เริ่มที่ 20
             y = -30 + (row - imagesPerRow * (page - 1)) * (maxHeight + margin);
           }
-
-          // วาดลง canvas เพื่อแปลงเป็น base64
           const canvas = document.createElement('canvas');
           canvas.width = img.width;
           canvas.height = img.height;
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0);
           const imgData = canvas.toDataURL('image/jpeg');
-
           imageQueue[i] = { imgData, x, y, w: imgWidth, h: imgHeight, page };
-
           loadedImages++;
           if (loadedImages === totalImages) {
-            // วาดภาพทุกภาพหลังโหลดครบ
             let currentPage = 1;
             imageQueue.forEach((imgObj) => {
               if (imgObj.page > currentPage) {
@@ -167,13 +213,6 @@ const DataViewer: React.FC = () => {
     } else {
       doc.save(`CheckSystem_${check.date}.pdf`);
     }
-  };
-
-  // --- แก้ไขจุดนี้ให้ Modal อัปเดตข้อมูลถูกต้องทุกครั้งที่เลือก ---
-  const handleOpenModal = (id: string | number) => {
-    setSelectedCheckId(id);
-    setShowModal(false);
-    setTimeout(() => setShowModal(true), 0); // ให้ state อัปเดตก่อนเปิด Modal
   };
 
   return (
@@ -221,16 +260,60 @@ const DataViewer: React.FC = () => {
               <h2 className="text-xl font-bold text-blue-800">
                 Check Details - {selectedCheck.date}
               </h2>
-              <button
-                className="bg-gray-300 text-gray-800 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-400 text-xl"
-                aria-label="Close"
-                onClick={() => {
-                  setShowModal(false);
-                  setSelectedCheckId(null);
-                }}
-              >
-                ×
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Select สำหรับ Update/Delete */}
+                <div className="relative">
+                  <button
+                    className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200"
+                    aria-label="Settings"
+                    onClick={() =>
+                      setShowActionMenu(showActionMenu === selectedCheck.ID ? null : selectedCheck.ID)
+                    }
+                    type="button"
+                  >
+                    <FiSettings className="text-xl" />
+                  </button>
+                  {/* Dropdown เมนู */}
+                  {showActionMenu === selectedCheck.ID && (
+                    <div className="absolute right-0 mt-2 w-28 bg-white border rounded shadow z-10">
+                      <button
+                        className="block w-full text-left px-4 py-2 hover:bg-blue-100"
+                        onClick={() => {
+                          setFormUpdateData({
+                            ...selectedCheck,
+                            checks: Array.isArray(selectedCheck.checks)
+                              ? selectedCheck.checks.map(item => ({ ...item }))
+                              : [],
+                          });
+                          setShowEditModal(true);
+                          setShowActionMenu(null);
+                        }}
+                      >
+                        แก้ไข
+                      </button>
+                      <button
+                        className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600"
+                        onClick={() => {
+                          handleDelete(selectedCheck.ID);
+                          setShowActionMenu(null);
+                        }}
+                      >
+                        ลบ
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <button
+                  className="bg-gray-300 text-gray-800 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-400 text-xl"
+                  aria-label="Close"
+                  onClick={() => {
+                    setShowModal(false);
+                    setSelectedCheckId(null);
+                  }}
+                >
+                  X
+                </button>
+              </div>
             </div>
             <div className='flex mb-4'>
               <span className="font-semibold mr-2">Checked By:</span>
@@ -299,6 +382,89 @@ const DataViewer: React.FC = () => {
                 }}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal สำหรับแก้ไขข้อมูล */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded shadow-lg p-6 w-full max-w-3xl relative max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4 text-blue-800">แก้ไขข้อมูล</h2>
+            <div className="mb-3">
+              <label className="block mb-1">Checked By</label>
+              <input
+                className="border rounded px-2 py-1 w-full"
+                value={formUpdateData.checkedBy || ""}
+                onChange={e => setFormUpdateData({ ...formUpdateData, checkedBy: e.target.value })}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="block mb-1">วันที่</label>
+              <input
+                type="date"
+                className="border rounded px-2 py-1 w-full"
+                value={formUpdateData.date || ""}
+                onChange={e => setFormUpdateData({ ...formUpdateData, date: e.target.value })}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="block mb-1 font-semibold">รายการตรวจสอบ</label>
+              <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+                {Array.isArray(formUpdateData.checks) && formUpdateData.checks.map((item, idx) => (
+                  <div key={idx} className="border rounded p-2 flex flex-wrap gap-2 items-center">
+                    <input
+                      className="border rounded px-2 py-1 w-40 bg-gray-100 text-gray-500"
+                      value={item.name}
+                      disabled
+                      placeholder="ชื่อรายการ"
+                    />
+                    <input
+                      className="border rounded px-2 py-1 w-32 bg-gray-100 text-gray-500"
+                      value={item.section}
+                      disabled
+                      placeholder="Section"
+                    />
+                    <select
+                      className="border rounded px-2 py-1 bg-gray-100 text-gray-500"
+                      value={item.checked ? "true" : "false"}
+                      disabled
+                    >
+                      <option value="true">✔️ ผ่าน</option>
+                      <option value="false">❌ ไม่ผ่าน</option>
+                    </select>
+                    <input
+                      className="border rounded px-2 py-1 flex-1"
+                      value={item.remark}
+                      onChange={e => {
+                        const newChecks = [...(Array.isArray(formUpdateData.checks) ? formUpdateData.checks : [])];
+                        newChecks[idx] = { ...newChecks[idx], remark: e.target.value };
+                        setFormUpdateData({ ...formUpdateData, checks: newChecks });
+                      }}
+                      placeholder="หมายเหตุ"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                onClick={async () => {
+                  if (formUpdateData.ID) {
+                    await handleUpdate(formUpdateData.ID);
+                  }
+                }}
+              >
+                อัพเดต
+              </button>
+              <button
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400"
+                onClick={() => setShowEditModal(false)}
+              >
+                ยกเลิก
               </button>
             </div>
           </div>

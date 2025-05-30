@@ -34,15 +34,21 @@ func CreateUser(c *gin.Context) {
 }
 
 func UpdateUser(c *gin.Context) {
-	var user entity.User
+	var input struct {
+		FirstName  string
+		LastName   string
+		GenderID   uint
+		UserTypeID uint
+		// ไม่ต้องมี Email
+	}
 	id := c.Param("id")
 
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ShouldBindJSON"})
 		return
 	}
 
-	if err := entity.DB().Table("users").Where("id = ?", id).Save(&user).Error; err != nil {
+	if err := entity.DB().Model(&entity.User{}).Where("id = ?", id).Updates(input).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -75,9 +81,9 @@ func GetUserByID(c *gin.Context) {
 
 	// Get data from the database and check for errors
 	if err := entity.DB().Model(&entity.User{}).
-		Preload("Gender").Preload("UserType").                                      // Preload Gender to load the related gender data
-		Omit("Password"). // Preload UserType to load the related user type data
-		Where("id = ?", customerID).                                // Explicitly use users.id to avoid ambiguity
+		Preload("Gender").Preload("UserType"). // Preload Gender to load the related gender data
+		Omit("Password").                      // Preload UserType to load the related user type data
+		Where("id = ?", customerID).           // Explicitly use users.id to avoid ambiguity
 		First(&user).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

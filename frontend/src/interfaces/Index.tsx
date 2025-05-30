@@ -15,6 +15,18 @@ export interface User {
   UserType: UserType;
 }
 
+export interface UserUpdate {
+  [x: string]: unknown;
+
+  ID: number;
+  FirstName: string;
+  LastName: string;
+  GenderID: number;
+  UserTypeID: number;
+
+  Gender: Gender;
+  UserType: UserType;
+}
 export interface Gender {
   ID: number;
   Name: string;

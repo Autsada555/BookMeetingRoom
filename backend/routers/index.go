@@ -51,8 +51,8 @@ func initRequiredAuthRouter(route *gin.RouterGroup) {
 	//CCTV
 	route.POST("/checksystems/create", controllers.CreateDailyCheckSystems)
 	route.GET("/checksystems/list", controllers.ListCheckSystems)
-	route.DELETE("/checksystems/delete/:id", controllers.DeleteUser)
-	route.PATCH("/checksystems/patch/:id", controllers.UpdateUser)
+	route.DELETE("/checksystems/delete/:id", controllers.DeleteCheckSystems)
+	route.PATCH("/checksystems/patch/:id", controllers.UpdateCheckSystems)
 
 
 	// //order

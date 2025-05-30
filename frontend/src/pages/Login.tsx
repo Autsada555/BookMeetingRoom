@@ -47,7 +47,7 @@ const LoginPage: React.FC = () => {
       window.location.reload();
     } else {
       toast.error("เข้าสู่ระบบไม่สำเร็จ", {
-        description: "มีบางอย่างผิดปกติทำให้เ้ขาสู่ระบบไม่ได้",
+        description: "มีบางอย่างผิดปกติทำให้เข้าสู่ระบบไม่ได้",
       });
     }
   };

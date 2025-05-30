@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	// "time"
@@ -12,14 +13,14 @@ import (
 	// "github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
-	"gorm.io/gorm/clause"
+	// "gorm.io/gorm/clause"
 )
 
 type CheckData struct {
 	Date      string             `json:"date"`
 	CheckedBy string             `json:"checkedBy"`
 	UserID    uint               `json:"userID"`
-	Checks []entity.CheckItem `json:"checks"`
+	Checks    []entity.CheckItem `json:"checks"`
 	Images    []string           `json:"images"`
 }
 
@@ -59,15 +60,32 @@ func ListCheckSystems(c *gin.Context) {
 }
 
 func UpdateCheckSystems(c *gin.Context) {
-	var checksystems entity.DailyCheckSystems
+	var input struct {
+		Date      string             `json:"date"`
+		CheckedBy string             `json:"checkedBy"`
+		UserID    uint               `json:"userID"`
+		Checks    []entity.CheckItem `json:"checks"`
+		Images    []string           `json:"images"`
+	}
 	id := c.Param("id")
 
-	if err := c.ShouldBindJSON(&checksystems); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ShouldBindJSON"})
 		return
 	}
 
-	if err := entity.DB().Table("checksystems").Where("id = ?", id).Save(&checksystems).Error; err != nil {
+	checksJSON, _ := json.Marshal(input.Checks)
+	imagesJSON, _ := json.Marshal(input.Images)
+
+	updateData := map[string]interface{}{
+		"date":       input.Date,
+		"checked_by": input.CheckedBy,
+		"user_id":    input.UserID,
+		"checks":     datatypes.JSON(checksJSON),
+		"images":     datatypes.JSON(imagesJSON),
+	}
+
+	if err := entity.DB().Model(&entity.DailyCheckSystems{}).Where("id = ?", id).Updates(updateData).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -76,19 +94,26 @@ func UpdateCheckSystems(c *gin.Context) {
 }
 
 func DeleteCheckSystems(c *gin.Context) {
-	// create variable for store data as type of TourRegistration
+	id := c.Param("id")
 	var checksystems entity.DailyCheckSystems
 
-	// get id from url
-	id := c.Param("id")
+	// แปลง id เป็น uint
+	var idUint uint
+	if _, err := fmt.Sscan(id, &idUint); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
 
-	// delete data in database and check error
-	// Clauses(clause.Returning{}) is used to return the deleted data ควรส่งคืนข้อมูลที่ลบไปแล้ว
-	if rows := entity.DB().Clauses(clause.Returning{}).Delete(&checksystems, id).RowsAffected; rows == 0 {
+	// ลบและเช็ค error
+	result := entity.DB().Delete(&checksystems, idUint)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+	if result.RowsAffected == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "record not found"})
 		return
 	}
 
-	// response deleted data ส่งคืนการตอบสนอง JSON พร้อมรหัสสถานะ 200 OK
 	c.JSON(http.StatusOK, gin.H{"data": "Delete CheckSystems Successfully"})
 }

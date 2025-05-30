@@ -2,11 +2,17 @@ import { User } from '@/interfaces/Index';
 import { GetUserByID, UpdateUser } from '@/services/https/User';
 import React, { useEffect, useState } from 'react';
 import { FaUserCircle } from 'react-icons/fa';
+import { toast } from 'sonner';
 
 const UserProfile: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [editData, setEditData] = useState({ FirstName: '', LastName: '', Password: '', GenderID: 0, UserTypeID: 0 });
+  const [editData, setEditData] = useState({
+    FirstName: '',
+    LastName: '',
+    GenderID: 0,
+    UserTypeID: 0,
+  });
   const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -21,12 +27,10 @@ const UserProfile: React.FC = () => {
         const id = Number(idStr);
         setUserId(id);
         const res = await GetUserByID(id);
-        console.log("User Profile Data:", res); // Debugging line
         setUser(res);
         setEditData({
           FirstName: res.FirstName || '',
           LastName: res.LastName || '',
-          Password: '',
           GenderID: res.GenderID || 0,
           UserTypeID: res.UserTypeID || 0,
         });
@@ -49,9 +53,15 @@ const UserProfile: React.FC = () => {
     const updateRes = await UpdateUser(editData as User, userId);
     if (updateRes.status) {
       setUser((prev) => prev ? { ...prev, ...editData } : null);
-      alert('บันทึกโปรไฟล์สำเร็จ');
+      toast.success("อัพเดตข้อมูลเรียบร้อย", {
+        description: "อัพเดตข้อมูลเรียบร้อยแล้ว",
+        duration: 3000,
+      });
+      window.location.reload();
     } else {
-      alert('เกิดข้อผิดพลาด: ' + updateRes.message);
+      toast.error("อัพเดตข้อมูลไม่สำเร็จ", {
+        description: "มีบางอย่างผิดปกติทำให้อัพเดตไม่ได้",
+      });
     }
   };
 
@@ -75,7 +85,9 @@ const UserProfile: React.FC = () => {
     <div className="max-w-2xl mx-auto mt-10 p-8 bg-white shadow-lg rounded-lg">
       <div className="flex flex-col items-center mb-8">
         <FaUserCircle className="text-7xl text-blue-400 mb-2" />
-        <h2 className="text-3xl font-bold text-blue-800 mb-1">{user.FirstName} {user.LastName}</h2>
+        <h2 className="text-3xl font-bold text-blue-800 mb-1">
+          {user.FirstName} {user.LastName}
+        </h2>
         <span className="text-gray-500">{user.Email}</span>
       </div>
 
@@ -105,17 +117,6 @@ const UserProfile: React.FC = () => {
             value={user.Email}
             disabled
             className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-500"
-          />
-        </div>
-        <div>
-          <label className="block font-medium mb-1 text-blue-700">รหัสผ่าน (เปลี่ยนรหัสผ่านใหม่)</label>
-          <input
-            name="Password"
-            type="password"
-            value={editData.Password}
-            onChange={handleChange}
-            className="w-full border border-blue-300 px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-200"
-            placeholder="********"
           />
         </div>
         <div>
