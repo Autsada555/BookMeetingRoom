@@ -4,8 +4,8 @@ import autoTable from 'jspdf-autotable';
 import { GetAllCheckSystems, UpdateCheckSystems, DeleteCheckSystems } from '../services/https/DailyCheckSystems';
 import { DailyChecks } from '../interfaces/Index';
 import { toast } from 'sonner';
-import { FiSettings } from "react-icons/fi"; // เพิ่มที่ด้านบน
-
+import { FiSettings } from "react-icons/fi";
+import './fonts/Sarabun-Regular-normal.js';
 
 interface MonthlyGroupedData {
   [month: string]: DailyChecks[];
@@ -118,6 +118,7 @@ const DataViewer: React.FC = () => {
 
   const handleDownloadPDF = (check: DailyChecks) => {
     const doc = new jsPDF();
+    doc.setFont('helvetica');
     doc.text(`Daily Check Report`, 14, 15);
     doc.text(`Date: ${check.date}`, 14, 25);
     doc.text(`Checked By: ${check.checkedBy}`, 14, 32);
@@ -134,15 +135,18 @@ const DataViewer: React.FC = () => {
           sectionName,
           checkItem.name || '',
           checkItem.checked ? '/' : 'X',
-          checkItem.remark || '-',
+          checkItem.remark || '-', // รองรับภาษาไทยแล้ว
         ]);
       });
     });
-
     autoTable(doc, {
       startY: 40,
       head: [['Section', 'Item', 'Status', 'Remark']],
       body: rows,
+      bodyStyles: { font: 'Sarabun-Regular', fontSize: 10 },
+      columnStyles: {
+        3: { cellWidth: 50 }, // กำหนดความกว้างคอลัมน์ remark (index 3)
+      },
     });
 
     if (Array.isArray(check.images) && check.images.length > 0) {
