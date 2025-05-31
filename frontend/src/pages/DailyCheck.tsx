@@ -140,7 +140,7 @@ const DailyCheckSystemPage = () => {
     );
 
     const payload: DailyChecks = {
-      id: 0,
+      ID: 0,
       date,
       checkedBy,
       userID: userId,
@@ -154,6 +154,7 @@ const DailyCheckSystemPage = () => {
         toast.success("บันทึกสำเร็จ", {
           description: "บันทึกสำเร็จ ข้อมูลอยู่ในระบบแล้ว",
         });
+        window.location.reload();
       } else {
         toast.error("บันทึกไม่สำเร็จ", {
           description: "มีบางอย่างผิดปกติทำให้บันทึกในระบบไม่ได้",
