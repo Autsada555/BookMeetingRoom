@@ -6,10 +6,12 @@ const apiUrl =
     : "http://192.168.182.113:8080";
 
 const GetUserByID = async (id: number) => {
+  const token = localStorage.getItem("token"); // ดึง token ที่เก็บไว้
   const requestOptions: RequestInit = {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`, // เพิ่มบรรทัดนี้
     },
     credentials: "include"
   };
@@ -28,9 +30,13 @@ const GetUserByID = async (id: number) => {
 }
 
 async function CreateUser(formData: User) {
+  const token = localStorage.getItem("token");
   const requestOptions: RequestInit = {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
     credentials: "include",
     body: JSON.stringify(formData),
   };
@@ -49,9 +55,13 @@ async function CreateUser(formData: User) {
 }
 
 async function UpdateUser(formData: User, id: number | undefined) {
+  const token = localStorage.getItem("token");
   const requestOptions: RequestInit = {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
     body: JSON.stringify(formData),
     credentials: "include"
   };
@@ -70,8 +80,13 @@ async function UpdateUser(formData: User, id: number | undefined) {
 }
 
 async function DeleteUser(id: number | undefined) {
+  const token = localStorage.getItem("token");
   const requestOptions: RequestInit = {
     method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
     credentials: "include",
   };
   const res = await fetch(`${apiUrl}/user/delete/${id}`, requestOptions)
@@ -111,9 +126,13 @@ async function LoginUser(data: { Email: string, password: string }) {
 }
 
 async function LogOutUser(id: string) {
+  const token = localStorage.getItem("token");
   const requestOptions: RequestInit = {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
     credentials: "include"
   };
 
