@@ -4,17 +4,27 @@ import (
 	"net/http"
 	"slices"
 
+	"fmt"
 	"github.com/Autsada555/BookMeetingRoom/entity"
 	"github.com/Autsada555/BookMeetingRoom/utils"
 	"github.com/gin-gonic/gin"
-	"fmt"
 )
 
 // role base access control for middleware
 
 func CORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", utils.GetConfig().ORIGIN)
+		origin := c.Request.Header.Get("Origin")
+		allowedOrigins := []string{
+			"http://localhost:5173",
+			"http://192.168.182.113:5173",
+		}
+		for _, o := range allowedOrigins {
+			if o == origin {
+				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+				break
+			}
+		}
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT ,PATCH ,DELETE")
@@ -22,7 +32,6 @@ func CORS() gin.HandlerFunc {
 			c.AbortWithStatus(http.StatusNoContent)
 			return
 		}
-
 		c.Next()
 	}
 }
@@ -64,7 +73,7 @@ func Authorization(role_ids ...uint) gin.HandlerFunc {
 			"utk": 100,
 		}
 		active_token := c.GetString("active_token")
-		Email:= c.GetString("Email")
+		Email := c.GetString("Email")
 
 		if active_token != "etk" {
 			roleValue, exists := role[active_token]
