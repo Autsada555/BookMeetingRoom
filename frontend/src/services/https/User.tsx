@@ -1,6 +1,9 @@
 import { User } from "@/interfaces/Index";
 
-const apiUrl = "http://localhost:8080";
+const apiUrl =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:8080"
+    : "http://192.168.182.113:8080";
 
 const GetUserByID = async (id: number) => {
   const requestOptions: RequestInit = {

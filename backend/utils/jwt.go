@@ -12,12 +12,22 @@ import (
 var SECRET_KEY = []byte(GetConfig().SECRET_KEY)
 
 func ValidateJWT(token_name string, c *gin.Context) (*jwt.Token, jwt.MapClaims, error) {
-	tokenCookie, err := c.Cookie(token_name)
-	if err != nil {
-		return nil, nil, fmt.Errorf("please login first")
+	var tokenString string
+
+	// 1. ลองอ่านจาก Authorization header (Bearer)
+	authHeader := c.GetHeader("Authorization")
+	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		tokenString = authHeader[7:]
+	} else {
+		// 2. ถ้าไม่มี Bearer ให้ fallback ไปอ่านจาก cookie
+		cookie, err := c.Cookie(token_name)
+		if err != nil {
+			return nil, nil, fmt.Errorf("please login first")
+		}
+		tokenString = cookie
 	}
 
-	token, err := jwt.Parse(tokenCookie, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -40,13 +50,13 @@ func ValidateJWT(token_name string, c *gin.Context) (*jwt.Token, jwt.MapClaims, 
 	return token, claims, nil
 }
 
-func GenerateJWT(token_name string, c *gin.Context, Email string,id uint, hour int) (string, error) {
+func GenerateJWT(token_name string, c *gin.Context, Email string, id uint, hour int) (string, error) {
 	expiration := time.Now().Add(time.Hour * time.Duration(hour)).Unix()
 	// token to identify user
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"Email": Email,
-		"exp":   expiration,
-		"UserTypeID":    id,
+		"Email":      Email,
+		"exp":        expiration,
+		"UserTypeID": id,
 	})
 	fmt.Println(SECRET_KEY)
 	token_string, err := token.SignedString(SECRET_KEY)
