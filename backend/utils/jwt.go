@@ -64,7 +64,7 @@ func GenerateJWT(token_name string, c *gin.Context, Email string, id uint, hour 
 		return err.Error(), err
 	}
 
-	c.SetCookie(token_name, token_string, 3600*hour, "", GetConfig().ORIGIN, false, true)
+	c.SetCookie(token_name, token_string, 3600*hour, "/", "bookmeetingroom.onrender.com", true, true)
 
 	return token_string, nil
 }

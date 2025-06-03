@@ -16,8 +16,8 @@ func CORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 		allowedOrigins := []string{
-			"http://localhost:5173",
-			"http://192.168.182.113:5173",
+			// "http://localhost:5173",
+			// "http://192.168.182.113:5173",
 			"https://bookmeetingroom.onrender.com",
 		}
 		for _, o := range allowedOrigins {
