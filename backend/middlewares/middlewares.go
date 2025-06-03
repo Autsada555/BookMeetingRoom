@@ -18,7 +18,7 @@ func CORS() gin.HandlerFunc {
 		allowedOrigins := []string{
 			"http://localhost:5173",
 			"http://192.168.182.113:5173",
-			"https://bookmeetingroom-backend.onrender.com",
+			"https://bookmeetingroom.onrender.com",
 		}
 		for _, o := range allowedOrigins {
 			if o == origin {
