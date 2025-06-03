@@ -1,6 +1,6 @@
 import { User } from "@/interfaces/Index";
 
-const apiUrl = "https://bookmeetingroom-qk0h.onrender.com:10000";
+const apiUrl = "https://bookmeetingroom-qk0h.onrender.com";
 
 // const apiUrl =
 //   window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
