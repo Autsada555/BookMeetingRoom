@@ -94,6 +94,9 @@ func SetActiveJWT(c *gin.Context, token_name string, hour int) error {
 	if err != nil {
 		return err
 	}
-	c.SetCookie("token", token_string, 3600*hour, "/", GetConfig().ORIGIN, true, true)
+	// ใช้ domain เป็น "bookmeetingroom.onrender.com" และ secure=true
+	c.SetCookie(
+		"token", token_string, 3600*hour, "/", "bookmeetingroom.onrender.com", true, true,
+	)
 	return nil
 }
