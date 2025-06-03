@@ -2,8 +2,8 @@ package main
 
 import (
 	// `github.com/gin-gonic/gin`
-	`github.com/Autsada555/BookMeetingRoom/routers`
 	"github.com/Autsada555/BookMeetingRoom/entity"
+	"github.com/Autsada555/BookMeetingRoom/routers"
 )
 
 func main() {
@@ -15,5 +15,9 @@ func main() {
 	routers.InitRouter(route)
 
 	// Run the server
-	 route.Run("0.0.0.0:8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	route.Run("0.0.0.0:" + port)
 }
