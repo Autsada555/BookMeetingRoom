@@ -19,7 +19,7 @@ func main() {
 	// Run the server
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "10000"
 	}
 	route.Run("0.0.0.0:" + port)
 }
