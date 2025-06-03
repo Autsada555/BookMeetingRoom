@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { CreateCheckSystems } from "@/services/https/DailyCheckSystems";
 import { DailyChecks } from "@/interfaces/Index";
 import { ImageUpload } from "@/components/uploadimage";
