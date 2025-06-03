@@ -1,9 +1,11 @@
 import { DailyChecks } from "@/interfaces/Index";
 
-const apiUrl =
-  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-    ? "http://localhost:8080"
-    : "http://192.168.182.113:8080";
+const apiUrl = "https://bookmeetingroom-backend.onrender.com";
+
+// const apiUrl =
+//   window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+//     ? "http://localhost:8080"
+//     : "http://192.168.182.113:8080";
 
 const getToken = () => localStorage.getItem("token");
 
