@@ -14,7 +14,7 @@ func GetConfig() Config {
 	return Config{
 		SECRET_KEY:  getEnv("SECRET_KEY", "secret8985"),
 		PORT:        getEnv("PORT", "10000"),
-		ORIGIN:      getEnv("ORIGIN", "http://localhost:5173, http://192.168.182.113:5173, https://bookmeetingroom.onrender.com"),
+		ORIGIN:      getEnv("ORIGIN", "http://localhost:5173, http://192.168.182.113:5173, https://bookmeetingroom-qk0h.onrender.com"),
 		ADMIN_EMAIL: getEnv("ADMIN_EMAIL", "admin@dev.com"),
 		ADMIN_PASS:  getEnv("ADMIN_PASS", "12345678"),
 	}
