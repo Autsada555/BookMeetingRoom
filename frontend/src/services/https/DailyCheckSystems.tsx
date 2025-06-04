@@ -1,6 +1,6 @@
 import { DailyChecks } from "@/interfaces/Index";
 
-const apiUrl = "https://book-meeting-room-swart.vercel.app";
+const apiUrl = "https://bookmeetingroom-qk0h.onrender.com";
 
 // const apiUrl =
 //   window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
