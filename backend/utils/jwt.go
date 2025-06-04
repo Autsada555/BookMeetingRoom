@@ -64,7 +64,7 @@ func GenerateJWT(token_name string, c *gin.Context, Email string, id uint, hour 
 		return err.Error(), err
 	}
 
-	c.SetCookie(token_name, token_string, 3600*hour, "", GetConfig().ORIGIN, false, true)
+	c.SetCookie(token_name, token_string, 3600*hour, "/", "book-meeting-room-swart.vercel.app", true, true)
 
 	return token_string, nil
 }
@@ -94,6 +94,6 @@ func SetActiveJWT(c *gin.Context, token_name string, hour int) error {
 	if err != nil {
 		return err
 	}
-	c.SetCookie("token", token_string, 3600*hour, "", GetConfig().ORIGIN, false, true)
+	c.SetCookie("token", token_string, 3600*hour, "/", "book-meeting-room-swart.vercel.app", true, true)
 	return nil
 }

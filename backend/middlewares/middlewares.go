@@ -17,8 +17,7 @@ func CORS() gin.HandlerFunc {
 		origin := c.Request.Header.Get("Origin")
 		allowedOrigins := []string{
 			"https://book-meeting-room-swart.vercel.app",
-			// "http://localhost:5173",
-			// "http://192.168.182.113:5173",
+			"https://bookmeetingroom-qk0h.onrender.com", // (ถ้าต้องการให้ backend เรียกตัวเองได้)
 		}
 		for _, o := range allowedOrigins {
 			if o == origin {
