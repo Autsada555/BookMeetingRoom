@@ -16,7 +16,7 @@ func CORS() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 		allowedOrigins := []string{
-			"https://bookmeetingroom.onrender.com",
+			"https://book-meeting-room-swart.vercel.app",
 			// "http://localhost:5173",
 			// "http://192.168.182.113:5173",
 		}
